@@ -9,3 +9,7 @@ val Pink80 = Color(0xFFEFB8C8)
 val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
+
+// Agrega los colores faltantes referenciados en tus vistas
+val PurplePrimary = Color(0xFF452EC4)
+val GreenSuccess = Color(0xFF4CAF50)

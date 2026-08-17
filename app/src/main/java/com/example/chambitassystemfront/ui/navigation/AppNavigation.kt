@@ -1,13 +1,6 @@
-package com.example.chambitassystemfront
+package com.example.chambitassystemfront.ui.navigation
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -17,23 +10,6 @@ import com.example.chambitassystemfront.ui.screens.jobs.JobStatusScreen
 import com.example.chambitassystemfront.ui.screens.jobs.SearchJobsScreen
 import com.example.chambitassystemfront.ui.screens.match.MatchScreen
 import com.example.chambitassystemfront.ui.screens.reviews.ReviewScreen
-import com.example.chambitassystemfront.ui.theme.ChambitasSystemFrontTheme
-
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            ChambitasSystemFrontTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    AppNavigation()
-                }
-            }
-        }
-    }
-}
 
 @Composable
 fun AppNavigation() {
@@ -106,6 +82,7 @@ fun AppNavigation() {
         composable("review") {
             ReviewScreen(
                 onSubmitReview = {
+                    // Regresa al inicio limpiando el historial de navegación
                     navController.navigate("search_jobs") {
                         popUpTo("search_jobs") { inclusive = true }
                     }
