@@ -5,12 +5,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,62 +25,71 @@ import com.example.chambitassystemfront.R
 import com.example.chambitassystemfront.ui.theme.ChambitasSystemFrontTheme
 import com.example.chambitassystemfront.ui.theme.PurplePrimary
 
-data class JobCategory(
-    val name: String,
-    val iconRes: Int, // Referencia al drawable R.drawable.ic_...
-    val badgeColor: Color
-)
-
 data class JobItem(
     val id: Int,
     val title: String,
     val price: String,
     val location: String,
-    val iconRes: Int, // Referencia al drawable R.drawable.ic_...
+    val timeAgo: String,
+    val iconRes: Int,
     val badgeColor: Color
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchJobsScreen(onJobClick: (Int) -> Unit) {
+fun SearchJobsScreen(
+    onJobClick: (Int) -> Unit,
+    onBackClick: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
     var searchQuery by remember { mutableStateOf("") }
-
-    // Reemplaza R.drawable.ic_limpieza, etc., por los nombres exactos de tus archivos en res/drawable
-    val categories = remember {
-        listOf(
-            JobCategory("Limpieza", R.drawable.ic_limpieza, Color(0xFFF0ECFB)),
-            JobCategory("Mudanzas", R.drawable.ic_mudanza, Color(0xFFFFF4E5)),
-            JobCategory("Jardinería", R.drawable.ic_jardineria, Color(0xFFEAF5EA)),
-            JobCategory("mascotas", R.drawable.ic_mascotas, Color(0xFFEAF5EA)),
-            JobCategory("Otros", R.drawable.ic_otros, Color(0xFFF1F3F5))
-        )
-    }
 
     val jobs = remember {
         listOf(
             JobItem(
-                1,
-                "Limpieza de casa",
-                "$80 - $120",
-                "Centro, CDMX",
-                R.drawable.ic_limpieza,
-                Color(0xFFF0ECFB)
+                id = 1,
+                title = "Limpieza de departamento",
+                price = "$100",
+                location = "Centro, CDMX",
+                timeAgo = "Publicado hace 2 horas",
+                iconRes = R.drawable.ic_limpieza,
+                badgeColor = Color(0xFFF0ECFB)
             ),
             JobItem(
-                2,
-                "Ayuda para mudanza",
-                "$150 - $200",
-                "Del Valle, CDMX",
-                R.drawable.ic_mudanza,
-                Color(0xFFFFF4E5)
+                id = 2,
+                title = "Pintura de fachada",
+                price = "$300 - $500",
+                location = "Narvarte, CDMX",
+                timeAgo = "Publicado hace 4 horas",
+                iconRes = R.drawable.ic_mudanza,
+                badgeColor = Color(0xFFF0ECFB)
             ),
             JobItem(
-                3,
-                "Cuidado de mascotas",
-                "$100 - $150",
-                "Narvarte, CDMX",
-                R.drawable.ic_mascotas,
-                Color(0xFFEAF5EA)
+                id = 3,
+                title = "Cuido de mascotas",
+                price = "$100 - $150",
+                location = "Coyoacán, CDMX",
+                timeAgo = "Publicado hace 6 horas",
+                iconRes = R.drawable.ic_mascotas,
+                badgeColor = Color(0xFFEAF5EA)
+            ),
+            JobItem(
+                id = 4,
+                title = "Mantenimiento de jardín",
+                price = "$200 - $350",
+                location = "Del Valle, CDMX",
+                timeAgo = "Publicado hace 1 día",
+                iconRes = R.drawable.ic_jardineria,
+                badgeColor = Color(0xFFEAF5EA)
+            ),
+            JobItem(
+                id = 5,
+                title = "Servicios generales / Otros",
+                price = "$150 - $250",
+                location = "Polanco, CDMX",
+                timeAgo = "Publicado hace 2 días",
+                iconRes = R.drawable.ic_otros,
+                badgeColor = Color(0xFFF1F3F5)
             )
         )
     }
@@ -98,18 +106,28 @@ fun SearchJobsScreen(onJobClick: (Int) -> Unit) {
     }
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         text = "Buscar trabajos",
-                        fontSize = 22.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
                 },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Regresar"
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
-                )
+                ),
+                windowInsets = WindowInsets(0.dp) // Elimina el margen superior del status bar si aplica
             )
         }
     ) { paddingValues ->
@@ -118,9 +136,9 @@ fun SearchJobsScreen(onJobClick: (Int) -> Unit) {
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+            contentPadding = PaddingValues(top = 4.dp, bottom = 24.dp) // Pegado más hacia arriba
         ) {
-            // Buscador
             item {
                 OutlinedTextField(
                     value = searchQuery,
@@ -128,7 +146,7 @@ fun SearchJobsScreen(onJobClick: (Int) -> Unit) {
                     placeholder = {
                         Text(
                             "Buscar trabajos, categorías...",
-                            fontSize = 14.sp,
+                            fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.outline
                         )
                     },
@@ -139,80 +157,29 @@ fun SearchJobsScreen(onJobClick: (Int) -> Unit) {
                             tint = MaterialTheme.colorScheme.outline
                         )
                     },
-                    singleLine = true,
-                    shape = RoundedCornerShape(14.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-
-            // Sección Categorías
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Categorías",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
-                    TextButton(onClick = { }) {
-                        Text(
-                            text = "Ver todas",
-                            color = PurplePrimary,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 14.sp
-                        )
-                    }
-                }
-
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(14.dp),
-                    contentPadding = PaddingValues(vertical = 4.dp)
-                ) {
-                    items(categories) { category ->
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.width(72.dp)
+                    trailingIcon = {
+                        Surface(
+                            onClick = { /* TODO: Abrir Filtros */ },
+                            shape = RoundedCornerShape(20.dp),
+                            color = PurplePrimary.copy(alpha = 0.12f),
+                            modifier = Modifier.padding(end = 6.dp)
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(64.dp)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(category.badgeColor),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Image(
-                                    painter = painterResource(id = category.iconRes),
-                                    contentDescription = category.name,
-                                    modifier = Modifier.size(38.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(6.dp))
                             Text(
-                                text = category.name,
+                                text = "Filtros",
+                                color = PurplePrimary,
                                 fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = FontWeight.Medium
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                             )
                         }
-                    }
-                }
-            }
-
-            // Sección Lista de Trabajos
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Trabajos cerca de ti",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                        focusedBorderColor = PurplePrimary
+                    ),
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
@@ -223,7 +190,10 @@ fun SearchJobsScreen(onJobClick: (Int) -> Unit) {
                         .clickable { onJobClick(job.id) },
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                        containerColor = Color.White
+                    ),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 2.dp
                     )
                 ) {
                     Row(
@@ -231,55 +201,48 @@ fun SearchJobsScreen(onJobClick: (Int) -> Unit) {
                             .fillMaxWidth()
                             .padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(14.dp),
-                            modifier = Modifier.weight(1f)
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(job.badgeColor),
+                            contentAlignment = Alignment.Center
                         ) {
-                            // Badge con la ilustración del trabajo
-                            Box(
-                                modifier = Modifier
-                                    .size(56.dp)
-                                    .clip(RoundedCornerShape(14.dp))
-                                    .background(job.badgeColor),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Image(
-                                    painter = painterResource(id = job.iconRes),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(34.dp)
-                                )
-                            }
-
-                            Column {
-                                Text(
-                                    text = job.title,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 15.sp
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = job.price,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 14.sp
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = job.location,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.outline
-                                )
-                            }
+                            Image(
+                                painter = painterResource(id = job.iconRes),
+                                contentDescription = job.title,
+                                modifier = Modifier.size(32.dp)
+                            )
                         }
 
-                        IconButton(onClick = { }) {
-                            Icon(
-                                imageVector = Icons.Outlined.FavoriteBorder,
-                                contentDescription = "Guardar",
-                                tint = MaterialTheme.colorScheme.outline
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = job.title,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = job.price,
+                                color = Color(0xFFB87333),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = job.location,
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = job.timeAgo,
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.7f)
                             )
                         }
                     }
