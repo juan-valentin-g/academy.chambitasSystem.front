@@ -28,6 +28,56 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    var emailError by remember { mutableStateOf("") }
+    var passwordError by remember { mutableStateOf("") }
+
+    // Validar correo
+    fun validateEmail(): Boolean {
+
+        return when {
+
+            email.isBlank() -> {
+                emailError = "El correo electrónico es obligatorio."
+                false
+            }
+
+            !android.util.Patterns.EMAIL_ADDRESS
+                .matcher(email.trim())
+                .matches() -> {
+
+                emailError = "Ingresa un correo electrónico válido."
+                false
+            }
+
+            else -> {
+                emailError = ""
+                true
+            }
+        }
+    }
+
+    // Validar contraseña
+    fun validatePassword(): Boolean {
+
+        return when {
+
+            password.isBlank() -> {
+                passwordError = "La contraseña es obligatoria."
+                false
+            }
+
+            password.length < 6 -> {
+                passwordError = "La contraseña debe tener al menos 6 caracteres."
+                false
+            }
+
+            else -> {
+                passwordError = ""
+                true
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -35,7 +85,6 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center
     ) {
 
-        // Título
         Text(
             text = "🔐 Iniciar sesión",
             fontSize = 30.sp
@@ -50,38 +99,78 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Correo
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+
+            onValueChange = {
+                email = it
+                emailError = ""
+            },
+
             label = {
                 Text("Correo electrónico")
             },
+
             placeholder = {
                 Text("ejemplo@correo.com")
             },
+
             singleLine = true,
+
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+
+            shape = RoundedCornerShape(12.dp),
+
+            isError = emailError.isNotEmpty(),
+
+            supportingText = {
+
+                if (emailError.isNotEmpty()) {
+                    Text(
+                        text = emailError
+                    )
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+
+            onValueChange = {
+                password = it
+                passwordError = ""
+            },
+
             label = {
                 Text("Contraseña")
             },
+
             singleLine = true,
+
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+
+            shape = RoundedCornerShape(12.dp),
+
+            isError = passwordError.isNotEmpty(),
+
+            supportingText = {
+
+                if (passwordError.isNotEmpty()) {
+                    Text(
+                        text = passwordError
+                    )
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         TextButton(
             onClick = {
+                // Aquí posteriormente conectaremos
+                // la pantalla ForgotPasswordScreen.
             }
         ) {
             Text("¿Olvidaste tu contraseña?")
@@ -92,25 +181,37 @@ fun LoginScreen(
         Button(
             onClick = {
 
-                /*
-                 * TEMPORALMENTE:
-                 *
-                 * Si el correo es el del administrador,
-                 * se abre el panel de administración.
-                 *
-                 * En el backend esta validación se sustituirá
-                 * por el rol recibido desde la base de datos.
-                 */
+                val emailIsValid = validateEmail()
+                val passwordIsValid = validatePassword()
 
-                if (email.lowercase() == "admin@chambitas.com") {
-                    onAdminLogin()
-                } else {
-                    onLoginSuccess()
+                if (emailIsValid && passwordIsValid) {
+
+                    /*
+                     * TEMPORALMENTE:
+                     *
+                     * Si el correo es el del administrador,
+                     * se abre el panel de administración.
+                     *
+                     * Después esta validación será reemplazada
+                     * por el rol recibido desde el backend.
+                     */
+
+                    if (email.trim().lowercase() == "admin@chambitas.com") {
+
+                        onAdminLogin()
+
+                    } else {
+
+                        onLoginSuccess()
+                    }
                 }
             },
+
             modifier = Modifier.fillMaxWidth(),
+
             shape = RoundedCornerShape(12.dp)
         ) {
+
             Text("🔑 Iniciar sesión")
         }
 

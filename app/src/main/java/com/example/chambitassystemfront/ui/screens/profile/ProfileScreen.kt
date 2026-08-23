@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
@@ -26,7 +27,8 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun ProfileScreen(
     onBackClick: () -> Unit,
-    onApplicationsClick: () -> Unit
+    onApplicationsClick: () -> Unit,
+    onLogoutClick: () -> Unit
 ) {
 
     Column(
@@ -94,7 +96,6 @@ fun ProfileScreen(
                         .padding(22.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
 
                     Box(
                         modifier = Modifier
@@ -241,11 +242,37 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
+
+            OutlinedButton(
+                onClick = onLogoutClick,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = Color(0xFFD32F2F)
+                )
+            ) {
+
+                Icon(
+                    imageVector = Icons.Default.Logout,
+                    contentDescription = "Cerrar sesión"
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    text = "Cerrar sesión",
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
             OutlinedButton(
                 onClick = onBackClick,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(14.dp)
             ) {
+
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = null
@@ -306,7 +333,6 @@ private fun ProfileStatCard(
         }
     }
 }
-
 
 @Composable
 private fun ProfileOption(
