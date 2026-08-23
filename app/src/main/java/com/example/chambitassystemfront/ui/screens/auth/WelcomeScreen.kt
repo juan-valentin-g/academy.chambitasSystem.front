@@ -7,7 +7,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Login
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,8 +24,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun WelcomeScreen(
     onLoginClick: () -> Unit,
-    onRegisterClick: () -> Unit,
-    onGuestClick: () -> Unit
+    onRegisterClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -48,25 +52,31 @@ fun WelcomeScreen(
             onClick = onLoginClick,
             modifier = Modifier.fillMaxWidth()
         ) {
+            Icon(
+                imageVector = Icons.Default.Login,
+                contentDescription = "Iniciar sesión"
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
             Text("Iniciar sesión")
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        // Crear cuenta
         OutlinedButton(
             onClick = onRegisterClick,
             modifier = Modifier.fillMaxWidth()
         ) {
+            Icon(
+                imageVector = Icons.Default.PersonAdd,
+                contentDescription = "Crear cuenta"
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
             Text("Crear cuenta")
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        OutlinedButton(
-            onClick = onGuestClick,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Explorar como invitado")
         }
     }
 }

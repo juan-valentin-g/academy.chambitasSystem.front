@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+
 import com.example.chambitassystemfront.ui.screens.admin.AdminDashboardScreen
 import com.example.chambitassystemfront.ui.screens.admin.CategoriesScreen
 import com.example.chambitassystemfront.ui.screens.applications.ApplicationsScreen
@@ -36,29 +37,42 @@ fun AppNavigation() {
     ) {
 
         composable("welcome") {
+
             WelcomeScreen(
                 onLoginClick = {
                     navController.navigate("login")
                 },
+
                 onRegisterClick = {
                     navController.navigate("account_type")
-                },
-                onGuestClick = {
-                    navController.navigate("home")
                 }
             )
         }
 
         composable("login") {
+
             LoginScreen(
+
                 onLoginSuccess = {
                     navController.navigate("home") {
-                        popUpTo("login") { inclusive = true }
+                        popUpTo("login") {
+                            inclusive = true
+                        }
                     }
                 },
+
+                onAdminLogin = {
+                    navController.navigate("admin") {
+                        popUpTo("login") {
+                            inclusive = true
+                        }
+                    }
+                },
+
                 onRegisterClick = {
                     navController.navigate("account_type")
                 },
+
                 onBackClick = {
                     navController.popBackStack()
                 }
@@ -66,10 +80,13 @@ fun AppNavigation() {
         }
 
         composable("account_type") {
+
             AccountTypeScreen(
+
                 onContinue = {
                     navController.navigate("register")
                 },
+
                 onBackClick = {
                     navController.popBackStack()
                 }
@@ -77,10 +94,13 @@ fun AppNavigation() {
         }
 
         composable("register") {
+
             RegisterScreen(
+
                 onRegisterSuccess = {
                     navController.navigate("register_success")
                 },
+
                 onBackClick = {
                     navController.popBackStack()
                 }
@@ -88,26 +108,36 @@ fun AppNavigation() {
         }
 
         composable("register_success") {
+
             RegisterSuccessScreen(
                 onContinue = {
+
                     navController.navigate("login") {
-                        popUpTo("welcome")
+
+                        popUpTo("welcome") {
+                            inclusive = false
+                        }
                     }
                 }
             )
         }
 
         composable("home") {
+
             HomeScreen(
+
                 onSearchClick = {
                     navController.navigate("search_jobs")
                 },
+
                 onPublishClick = {
                     navController.navigate("applications")
                 },
+
                 onProfileClick = {
                     navController.navigate("profile")
                 },
+
                 onChatClick = {
                     navController.navigate("chat")
                 }
@@ -115,10 +145,13 @@ fun AppNavigation() {
         }
 
         composable("search_jobs") {
+
             SearchJobsScreen(
+
                 onJobClick = { jobId ->
                     navController.navigate("job_detail/$jobId")
                 },
+
                 onBackClick = {
                     navController.popBackStack()
                 }
@@ -127,21 +160,26 @@ fun AppNavigation() {
 
         composable(
             route = "job_detail/{jobId}",
+
             arguments = listOf(
                 navArgument("jobId") {
                     type = NavType.IntType
                 }
             )
+
         ) { backStackEntry ->
 
             val jobId =
                 backStackEntry.arguments?.getInt("jobId") ?: 0
 
             JobDetailScreen(
+
                 jobId = jobId,
+
                 onApplyClick = {
                     navController.navigate("apply_job/$jobId")
                 },
+
                 onBackClick = {
                     navController.popBackStack()
                 }
@@ -150,21 +188,26 @@ fun AppNavigation() {
 
         composable(
             route = "apply_job/{jobId}",
+
             arguments = listOf(
                 navArgument("jobId") {
                     type = NavType.IntType
                 }
             )
+
         ) { backStackEntry ->
 
             val jobId =
                 backStackEntry.arguments?.getInt("jobId") ?: 0
 
             ApplyJobScreen(
+
                 jobId = jobId,
+
                 onApplySuccess = {
                     navController.navigate("applications")
                 },
+
                 onBackClick = {
                     navController.popBackStack()
                 }
@@ -172,10 +215,13 @@ fun AppNavigation() {
         }
 
         composable("applications") {
+
             ApplicationsScreen(
+
                 onMatchClick = {
                     navController.navigate("match")
                 },
+
                 onBackClick = {
                     navController.popBackStack()
                 }
@@ -183,17 +229,22 @@ fun AppNavigation() {
         }
 
         composable("match") {
+
             MatchScreen(
+
                 onGoToChat = {
                     navController.navigate("chat")
                 },
+
                 onGoToHome = {
                     navController.navigate("home") {
+
                         popUpTo("home") {
                             inclusive = false
                         }
                     }
                 },
+
                 onBackClick = {
                     navController.popBackStack()
                 }
@@ -201,6 +252,7 @@ fun AppNavigation() {
         }
 
         composable("chat") {
+
             ChatScreen(
                 onBackClick = {
                     navController.popBackStack()
@@ -209,10 +261,13 @@ fun AppNavigation() {
         }
 
         composable("job_status") {
+
             JobStatusScreen(
+
                 onCompleteJob = {
                     navController.navigate("job_completed")
                 },
+
                 onBackClick = {
                     navController.popBackStack()
                 }
@@ -220,7 +275,9 @@ fun AppNavigation() {
         }
 
         composable("job_completed") {
+
             JobCompletedScreen(
+
                 onGoToReview = {
                     navController.navigate("review")
                 }
@@ -228,14 +285,19 @@ fun AppNavigation() {
         }
 
         composable("review") {
+
             ReviewScreen(
+
                 onSubmitReview = {
+
                     navController.navigate("home") {
+
                         popUpTo("home") {
                             inclusive = false
                         }
                     }
                 },
+
                 onBackClick = {
                     navController.popBackStack()
                 }
@@ -243,10 +305,13 @@ fun AppNavigation() {
         }
 
         composable("profile") {
+
             ProfileScreen(
+
                 onBackClick = {
                     navController.popBackStack()
                 },
+
                 onApplicationsClick = {
                     navController.navigate("applications")
                 }
@@ -254,10 +319,13 @@ fun AppNavigation() {
         }
 
         composable("admin") {
+
             AdminDashboardScreen(
+
                 onCategoriesClick = {
                     navController.navigate("categories")
                 },
+
                 onBackClick = {
                     navController.popBackStack()
                 }
@@ -265,6 +333,7 @@ fun AppNavigation() {
         }
 
         composable("categories") {
+
             CategoriesScreen(
                 onBackClick = {
                     navController.popBackStack()

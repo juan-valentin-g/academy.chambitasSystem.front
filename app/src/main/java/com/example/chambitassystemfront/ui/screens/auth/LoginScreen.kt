@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -19,9 +20,11 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
+    onAdminLogin: () -> Unit,
     onRegisterClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -32,18 +35,34 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center
     ) {
 
+        // Título
         Text(
-            text = "Iniciar sesión",
+            text = "🔐 Iniciar sesión",
             fontSize = 30.sp
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Ingresa a tu cuenta de Chambitas",
+            fontSize = 16.sp
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Correo
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Correo electrónico") },
-            modifier = Modifier.fillMaxWidth()
+            label = {
+                Text("Correo electrónico")
+            },
+            placeholder = {
+                Text("ejemplo@correo.com")
+            },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp)
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -51,14 +70,19 @@ fun LoginScreen(
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Contraseña") },
-            modifier = Modifier.fillMaxWidth()
+            label = {
+                Text("Contraseña")
+            },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp)
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         TextButton(
-            onClick = {}
+            onClick = {
+            }
         ) {
             Text("¿Olvidaste tu contraseña?")
         }
@@ -66,10 +90,28 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = onLoginSuccess,
-            modifier = Modifier.fillMaxWidth()
+            onClick = {
+
+                /*
+                 * TEMPORALMENTE:
+                 *
+                 * Si el correo es el del administrador,
+                 * se abre el panel de administración.
+                 *
+                 * En el backend esta validación se sustituirá
+                 * por el rol recibido desde la base de datos.
+                 */
+
+                if (email.lowercase() == "admin@chambitas.com") {
+                    onAdminLogin()
+                } else {
+                    onLoginSuccess()
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp)
         ) {
-            Text("Iniciar sesión")
+            Text("🔑 Iniciar sesión")
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -78,7 +120,7 @@ fun LoginScreen(
             onClick = onRegisterClick,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("¿No tienes cuenta? Regístrate")
+            Text("👤 ¿No tienes cuenta? Regístrate")
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -87,7 +129,7 @@ fun LoginScreen(
             onClick = onBackClick,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Regresar")
+            Text("← Regresar")
         }
     }
 }
