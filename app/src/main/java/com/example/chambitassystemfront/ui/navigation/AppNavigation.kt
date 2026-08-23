@@ -12,6 +12,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 
+
+import com.example.chambitassystemfront.ui.screens.auth.ForgotPasswordScreen
+
 import com.example.chambitassystemfront.ui.components.BottomNavBar
 import com.example.chambitassystemfront.ui.screens.PublishJobScreenPlaceholder
 import com.example.chambitassystemfront.ui.screens.admin.AdminDashboardScreen
@@ -101,7 +104,7 @@ fun AppNavigation() {
                 )
             }
 
-            // =========================================================
+// =========================================================
             // LOGIN
             // =========================================================
 
@@ -134,6 +137,22 @@ fun AppNavigation() {
                     },
 
                     onBackClick = {
+                        navController.popBackStack()
+                    },
+
+                    onForgotPasswordClick = {
+                        navController.navigate("forgot_password")
+                    }
+                )
+            }
+
+            // =========================================================
+            // RECUPERAR CONTRASEÑA
+            // =========================================================
+
+            composable("forgot_password") {
+                ForgotPasswordScreen(
+                    onBackToLogin = {
                         navController.popBackStack()
                     }
                 )
