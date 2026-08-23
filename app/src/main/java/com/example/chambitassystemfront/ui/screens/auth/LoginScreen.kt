@@ -16,9 +16,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.chambitassystemfront.data.model.LoginRequest
+import com.example.chambitassystemfront.data.model.LoginRequestDto
 import com.example.chambitassystemfront.data.remote.ApiClient
-import kotlinx.coroutines.CoroutineScope
+import com.example.chambitassystemfront.data.repository.AuthRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -34,7 +34,49 @@ fun LoginScreen(
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+    var emailError by remember { mutableStateOf("") }
+    var passwordError by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
+
+    // Instanciamos el repositorio usando el servicio de la API
+    val authRepository = remember { AuthRepository(ApiClient.authApiService) }
+
+    // Validar correo
+    fun validateEmail(): Boolean {
+        return when {
+            email.isBlank() -> {
+                emailError = "El correo electrónico es obligatorio."
+                false
+            }
+            !android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches() -> {
+                emailError = "Ingresa un correo electrónico válido."
+                false
+            }
+            else -> {
+                emailError = ""
+                true
+            }
+        }
+    }
+
+    // Validar contraseña
+    fun validatePassword(): Boolean {
+        return when {
+            password.isBlank() -> {
+                passwordError = "La contraseña es obligatoria."
+                false
+            }
+            password.length < 6 -> {
+                passwordError = "La contraseña debe tener al menos 6 caracteres."
+                false
+            }
+            else -> {
+                passwordError = ""
+                true
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -43,7 +85,6 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center
     ) {
 
-        // Título
         Text(
             text = "🔐 Iniciar sesión",
             fontSize = 30.sp
@@ -58,32 +99,43 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Correo
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
-            label = {
-                Text("Correo electrónico")
+            onValueChange = {
+                email = it
+                emailError = ""
             },
-            placeholder = {
-                Text("ejemplo@correo.com")
-            },
+            label = { Text("Correo electrónico") },
+            placeholder = { Text("ejemplo@correo.com") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
+            isError = emailError.isNotEmpty(),
+            supportingText = {
+                if (emailError.isNotEmpty()) {
+                    Text(text = emailError)
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
-            label = {
-                Text("Contraseña")
+            onValueChange = {
+                password = it
+                passwordError = ""
             },
+            label = { Text("Contraseña") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
+            isError = passwordError.isNotEmpty(),
+            supportingText = {
+                if (passwordError.isNotEmpty()) {
+                    Text(text = passwordError)
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -98,23 +150,31 @@ fun LoginScreen(
 
         Button(
             onClick = {
-                coroutineScope.launch(Dispatchers.IO) {
-                    try {
-                        val response = ApiClient.authApiService.login(
-                            LoginRequest(email = email, password = password)
+                val emailIsValid = validateEmail()
+                val passwordIsValid = validatePassword()
+
+                if (emailIsValid && passwordIsValid) {
+                    coroutineScope.launch(Dispatchers.IO) {
+                        val result = authRepository.login(
+                            LoginRequestDto(correo = email.trim(), contrasena = password)
                         )
 
-                        ApiClient.userToken = response.accessToken
+                        result.fold(
+                            onSuccess = { response ->
+                                ApiClient.userToken = response.accessToken
 
-                        withContext(Dispatchers.Main) {
-                            if (response.user.rol == "admin" || email.lowercase() == "admin@chambitas.com") {
-                                onAdminLogin()
-                            } else {
-                                onLoginSuccess()
+                                withContext(Dispatchers.Main) {
+                                    if (email.trim().lowercase() == "admin@chambitas.com") {
+                                        onAdminLogin()
+                                    } else {
+                                        onLoginSuccess()
+                                    }
+                                }
+                            },
+                            onFailure = { error ->
+                                error.printStackTrace()
                             }
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
+                        )
                     }
                 }
             },

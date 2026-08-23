@@ -27,6 +27,7 @@ fun ApplicationsScreen(
 ) {
 
     var selectedTab by remember { mutableIntStateOf(0) }
+    var applicationStatus by remember { mutableStateOf("Nueva postulación") }
 
     Column(
         modifier = Modifier
@@ -159,11 +160,21 @@ fun ApplicationsScreen(
                     title = "Limpieza de casa",
                     subtitle = "Postulante: María López",
                     price = "$200",
-                    status = "Nueva postulación",
-                    statusColor = Color(0xFF4B20C9),
+                    status = applicationStatus,
+                    statusColor = when (applicationStatus) {
+                        "Aceptada" -> Color(0xFF2E7D32)
+                        "Rechazada" -> Color(0xFFD32F2F)
+                        else -> Color(0xFF4B20C9)
+                    },
                     showActions = true,
-                    onAccept = onMatchClick,
-                    onReject = {},
+                    onAccept = {
+                        applicationStatus = "Aceptada"
+                        onMatchClick()
+                    },
+
+                    onReject = {
+                        applicationStatus = "Rechazada"
+                    },
                     onMatchClick = onMatchClick
                 )
             }
