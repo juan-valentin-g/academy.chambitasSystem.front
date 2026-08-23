@@ -42,12 +42,12 @@ fun AppNavigation() {
                 onLoginClick = {
                     navController.navigate("login")
                 },
-
                 onRegisterClick = {
                     navController.navigate("account_type")
                 }
             )
         }
+
 
         composable("login") {
 
@@ -79,6 +79,7 @@ fun AppNavigation() {
             )
         }
 
+
         composable("account_type") {
 
             AccountTypeScreen(
@@ -107,9 +108,11 @@ fun AppNavigation() {
             )
         }
 
+
         composable("register_success") {
 
             RegisterSuccessScreen(
+
                 onContinue = {
 
                     navController.navigate("login") {
@@ -121,6 +124,7 @@ fun AppNavigation() {
                 }
             )
         }
+
 
         composable("home") {
 
@@ -144,6 +148,7 @@ fun AppNavigation() {
             )
         }
 
+
         composable("search_jobs") {
 
             SearchJobsScreen(
@@ -158,6 +163,7 @@ fun AppNavigation() {
             )
         }
 
+
         composable(
             route = "job_detail/{jobId}",
 
@@ -166,7 +172,6 @@ fun AppNavigation() {
                     type = NavType.IntType
                 }
             )
-
         ) { backStackEntry ->
 
             val jobId =
@@ -194,7 +199,6 @@ fun AppNavigation() {
                     type = NavType.IntType
                 }
             )
-
         ) { backStackEntry ->
 
             val jobId =
@@ -214,6 +218,7 @@ fun AppNavigation() {
             )
         }
 
+
         composable("applications") {
 
             ApplicationsScreen(
@@ -228,6 +233,7 @@ fun AppNavigation() {
             )
         }
 
+
         composable("match") {
 
             MatchScreen(
@@ -237,6 +243,7 @@ fun AppNavigation() {
                 },
 
                 onGoToHome = {
+
                     navController.navigate("home") {
 
                         popUpTo("home") {
@@ -251,6 +258,7 @@ fun AppNavigation() {
             )
         }
 
+
         composable("chat") {
 
             ChatScreen(
@@ -259,6 +267,7 @@ fun AppNavigation() {
                 }
             )
         }
+
 
         composable("job_status") {
 
@@ -274,6 +283,7 @@ fun AppNavigation() {
             )
         }
 
+
         composable("job_completed") {
 
             JobCompletedScreen(
@@ -283,6 +293,7 @@ fun AppNavigation() {
                 }
             )
         }
+
 
         composable("review") {
 
@@ -332,9 +343,11 @@ fun AppNavigation() {
             )
         }
 
+
         composable("categories") {
 
             CategoriesScreen(
+
                 onBackClick = {
                     navController.popBackStack()
                 }
