@@ -12,9 +12,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 
-
 import com.example.chambitassystemfront.ui.screens.auth.ForgotPasswordScreen
-
 import com.example.chambitassystemfront.ui.components.BottomNavBar
 import com.example.chambitassystemfront.ui.screens.jobs.PostaJobScreen
 import com.example.chambitassystemfront.ui.screens.admin.AdminDashboardScreen
@@ -104,7 +102,7 @@ fun AppNavigation() {
                 )
             }
 
-// =========================================================
+            // =========================================================
             // LOGIN
             // =========================================================
 
@@ -115,8 +113,8 @@ fun AppNavigation() {
                     onLoginSuccess = {
 
                         navController.navigate("home") {
-
-                            popUpTo("login") {
+                            // Limpiamos desde welcome para asegurar una entrada limpia a home
+                            popUpTo("welcome") {
                                 inclusive = true
                             }
                         }
@@ -259,8 +257,8 @@ fun AppNavigation() {
             }
 
             // =========================================================
-// PUBLICAR TRABAJO
-// =========================================================
+            // PUBLICAR TRABAJO
+            // =========================================================
 
             composable("publish_job") {
 

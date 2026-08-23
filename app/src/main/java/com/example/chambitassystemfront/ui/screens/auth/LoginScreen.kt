@@ -16,6 +16,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.chambitassystemfront.data.model.LoginRequest
+import com.example.chambitassystemfront.data.remote.ApiClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun LoginScreen(
@@ -28,6 +34,7 @@ fun LoginScreen(
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -91,21 +98,24 @@ fun LoginScreen(
 
         Button(
             onClick = {
+                coroutineScope.launch(Dispatchers.IO) {
+                    try {
+                        val response = ApiClient.authApiService.login(
+                            LoginRequest(email = email, password = password)
+                        )
 
-                /*
-                 * TEMPORALMENTE:
-                 *
-                 * Si el correo es el del administrador,
-                 * se abre el panel de administración.
-                 *
-                 * En el backend esta validación se sustituirá
-                 * por el rol recibido desde la base de datos.
-                 */
+                        ApiClient.userToken = response.accessToken
 
-                if (email.lowercase() == "admin@chambitas.com") {
-                    onAdminLogin()
-                } else {
-                    onLoginSuccess()
+                        withContext(Dispatchers.Main) {
+                            if (response.user.rol == "admin" || email.lowercase() == "admin@chambitas.com") {
+                                onAdminLogin()
+                            } else {
+                                onLoginSuccess()
+                            }
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth(),
