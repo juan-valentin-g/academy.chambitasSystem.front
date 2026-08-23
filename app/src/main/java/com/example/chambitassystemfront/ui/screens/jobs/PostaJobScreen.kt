@@ -26,13 +26,14 @@ fun PostaJobScreen(
     var price by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
 
+    var errorMessage by remember { mutableStateOf("") }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF9F7FF))
     ) {
 
-        // Encabezado
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -98,7 +99,10 @@ fun PostaJobScreen(
 
             OutlinedTextField(
                 value = title,
-                onValueChange = { title = it },
+                onValueChange = {
+                    title = it
+                    errorMessage = ""
+                },
                 label = {
                     Text("Título del trabajo")
                 },
@@ -107,14 +111,18 @@ fun PostaJobScreen(
                 },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                isError = errorMessage.isNotEmpty() && title.isBlank()
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = description,
-                onValueChange = { description = it },
+                onValueChange = {
+                    description = it
+                    errorMessage = ""
+                },
                 label = {
                     Text("Descripción")
                 },
@@ -124,30 +132,39 @@ fun PostaJobScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(120.dp),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                isError = errorMessage.isNotEmpty() && description.isBlank()
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = price,
-                onValueChange = { price = it },
+                onValueChange = {
+                    price = it
+                    errorMessage = ""
+                },
                 label = {
                     Text("Presupuesto")
                 },
                 placeholder = {
-                    Text("Ej. $500")
+                    Text("Ej. 500")
                 },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                isError = errorMessage.isNotEmpty() &&
+                        (price.isBlank() || price.toDoubleOrNull() == null)
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = location,
-                onValueChange = { location = it },
+                onValueChange = {
+                    location = it
+                    errorMessage = ""
+                },
                 label = {
                     Text("Ubicación")
                 },
@@ -156,16 +173,61 @@ fun PostaJobScreen(
                 },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                isError = errorMessage.isNotEmpty() && location.isBlank()
             )
+
+            if (errorMessage.isNotEmpty()) {
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Text(
+                    text = errorMessage,
+                    color = Color(0xFFD32F2F),
+                    fontSize = 14.sp
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
-                onClick = onPublishSuccess,
+                onClick = {
+
+                    val priceValue = price.toDoubleOrNull()
+
+                    when {
+                        title.isBlank() ||
+                                description.isBlank() ||
+                                price.isBlank() ||
+                                location.isBlank() -> {
+
+                            errorMessage =
+                                "Completa todos los campos antes de publicar."
+                        }
+
+                        priceValue == null -> {
+
+                            errorMessage =
+                                "El presupuesto debe ser un número válido."
+                        }
+
+                        priceValue <= 0 -> {
+
+                            errorMessage =
+                                "El presupuesto debe ser mayor a 0."
+                        }
+
+                        else -> {
+
+                            errorMessage = ""
+                            onPublishSuccess()
+                        }
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             ) {
+
                 Text(
                     text = "Publicar trabajo",
                     fontSize = 16.sp

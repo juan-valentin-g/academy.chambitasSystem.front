@@ -28,8 +28,24 @@ import androidx.compose.ui.unit.sp
 fun ProfileScreen(
     onBackClick: () -> Unit,
     onApplicationsClick: () -> Unit,
+    onEditProfileClick: () -> Unit,
     onLogoutClick: () -> Unit
 ) {
+
+    OutlinedButton(
+        onClick = onEditProfileClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.Edit,
+            contentDescription = null
+        )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Text("Editar perfil")
+    }
 
     Column(
         modifier = Modifier
