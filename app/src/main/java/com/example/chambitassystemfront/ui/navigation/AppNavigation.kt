@@ -16,7 +16,7 @@ import androidx.navigation.navArgument
 import com.example.chambitassystemfront.ui.screens.auth.ForgotPasswordScreen
 
 import com.example.chambitassystemfront.ui.components.BottomNavBar
-import com.example.chambitassystemfront.ui.screens.PublishJobScreenPlaceholder
+import com.example.chambitassystemfront.ui.screens.jobs.PostaJobScreen
 import com.example.chambitassystemfront.ui.screens.admin.AdminDashboardScreen
 import com.example.chambitassystemfront.ui.screens.admin.CategoriesScreen
 import com.example.chambitassystemfront.ui.screens.applications.ApplicationsScreen
@@ -259,12 +259,29 @@ fun AppNavigation() {
             }
 
             // =========================================================
-            // PUBLICAR TRABAJO
-            // =========================================================
+// PUBLICAR TRABAJO
+// =========================================================
 
             composable("publish_job") {
 
-                PublishJobScreenPlaceholder()
+                PostaJobScreen(
+
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+
+                    onPublishSuccess = {
+
+                        navController.navigate("home") {
+
+                            popUpTo("home") {
+                                inclusive = false
+                            }
+
+                            launchSingleTop = true
+                        }
+                    }
+                )
             }
 
             // =========================================================
