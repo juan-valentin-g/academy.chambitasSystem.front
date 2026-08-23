@@ -4,13 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.*
@@ -31,283 +27,181 @@ fun HomeScreen(
     onChatClick: () -> Unit
 ) {
 
-    Scaffold(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF9F7FF))
+            .padding(horizontal = 18.dp)
+    ) {
 
-        bottomBar = {
-
-            NavigationBar {
-
-                NavigationBarItem(
-                    selected = true,
-                    onClick = {},
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Home,
-                            contentDescription = "Inicio"
-                        )
-                    },
-                    label = {
-                        Text("Inicio")
-                    }
-                )
-
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onSearchClick,
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Buscar"
-                        )
-                    },
-                    label = {
-                        Text("Buscar")
-                    }
-                )
-
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onPublishClick,
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Publicar"
-                        )
-                    },
-                    label = {
-                        Text("Publicar")
-                    }
-                )
-
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onChatClick,
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Chat,
-                            contentDescription = "Mensajes"
-                        )
-                    },
-                    label = {
-                        Text("Mensajes")
-                    }
-                )
-
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onProfileClick,
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Perfil"
-                        )
-                    },
-                    label = {
-                        Text("Perfil")
-                    }
-                )
-            }
-        }
-
-    ) { padding ->
-
-        Column(
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .background(Color(0xFFF9F7FF))
-                .padding(horizontal = 18.dp)
+                .fillMaxWidth()
+                .padding(top = 18.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 18.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+            Column {
 
-                Column {
+                Text(
+                    text = "Inicio",
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.Bold
+                )
 
-                    Text(
-                        text = "Inicio",
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Spacer(
-                        modifier = Modifier.height(4.dp)
-                    )
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = "Ubicación",
-                            tint = Color(0xFF4B20C9),
-                            modifier = Modifier.size(18.dp)
-                        )
-
-                        Spacer(
-                            modifier = Modifier.width(4.dp)
-                        )
-
-                        Text(
-                            text = "Ciudad de México",
-                            fontSize = 14.sp,
-                            color = Color.DarkGray
-                        )
-                    }
-                }
-
-                IconButton(
-                    onClick = {}
-                ) {
-
-                    Icon(
-                        imageVector = Icons.Default.Notifications,
-                        contentDescription = "Notificaciones",
-                        tint = Color(0xFF4B20C9),
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
-            }
-
-            Spacer(
-                modifier = Modifier.height(18.dp)
-            )
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(55.dp),
-                shape = RoundedCornerShape(15.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White
-                ),
-                onClick = onSearchClick
-            ) {
+                Spacer(modifier = Modifier.height(4.dp))
 
                 Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
                     Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Buscar",
-                        tint = Color.Gray
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = "Ubicación",
+                        tint = Color(0xFF4B20C9),
+                        modifier = Modifier.size(18.dp)
                     )
 
-                    Spacer(
-                        modifier = Modifier.width(10.dp)
-                    )
+                    Spacer(modifier = Modifier.width(4.dp))
 
                     Text(
-                        text = "¿Qué trabajo necesitas hoy?",
-                        color = Color.Gray,
-                        fontSize = 14.sp
+                        text = "Ciudad de México",
+                        fontSize = 14.sp,
+                        color = Color.DarkGray
                     )
                 }
             }
 
-            Spacer(
-                modifier = Modifier.height(22.dp)
-            )
+            IconButton(
+                onClick = {}
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Notifications,
+                    contentDescription = "Notificaciones",
+                    tint = Color(0xFF4B20C9),
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(55.dp),
+            shape = RoundedCornerShape(15.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White
+            ),
+            onClick = onSearchClick
+        ) {
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Buscar",
+                    tint = Color.Gray
+                )
+
+                Spacer(modifier = Modifier.width(10.dp))
+
                 Text(
-                    text = "Categorías",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                TextButton(
-                    onClick = onSearchClick
-                ) {
-
-                    Text(
-                        text = "Ver todas",
-                        color = Color(0xFF4B20C9)
-                    )
-                }
-            }
-
-            Spacer(
-                modifier = Modifier.height(8.dp)
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-
-                CategoryItem(
-                    icon = Icons.Default.Work,
-                    title = "Limpieza",
-                    onClick = onSearchClick
-                )
-
-                CategoryItem(
-                    icon = Icons.Default.Work,
-                    title = "Mudanzas",
-                    onClick = onSearchClick
-                )
-
-                CategoryItem(
-                    icon = Icons.Default.Work,
-                    title = "Jardinería",
-                    onClick = onSearchClick
-                )
-
-                CategoryItem(
-                    icon = Icons.Default.Work,
-                    title = "Otros",
-                    onClick = onSearchClick
+                    text = "¿Qué trabajo necesitas hoy?",
+                    color = Color.Gray,
+                    fontSize = 14.sp
                 )
             }
+        }
 
-            Spacer(
-                modifier = Modifier.height(24.dp)
-            )
+        Spacer(modifier = Modifier.height(22.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
 
             Text(
-                text = "Trabajos destacados",
+                text = "Categorías",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
 
-            Spacer(
-                modifier = Modifier.height(12.dp)
-            )
+            TextButton(
+                onClick = onSearchClick
+            ) {
+                Text(
+                    text = "Ver todas",
+                    color = Color(0xFF4B20C9)
+                )
+            }
+        }
 
-            JobCard(
-                title = "Limpieza de casa",
-                price = "$100 - $200",
-                location = "Centro, CDMX",
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+
+            CategoryItem(
+                icon = Icons.Default.Work,
+                title = "Limpieza",
                 onClick = onSearchClick
             )
 
-            Spacer(
-                modifier = Modifier.height(12.dp)
+            CategoryItem(
+                icon = Icons.Default.Work,
+                title = "Mudanzas",
+                onClick = onSearchClick
             )
 
-            JobCard(
-                title = "Ayuda para mudanza",
-                price = "$150 - $300",
-                location = "Del Valle, CDMX",
+            CategoryItem(
+                icon = Icons.Default.Work,
+                title = "Jardinería",
+                onClick = onSearchClick
+            )
+
+            CategoryItem(
+                icon = Icons.Default.Work,
+                title = "Otros",
                 onClick = onSearchClick
             )
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = "Trabajos destacados",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        JobCard(
+            title = "Limpieza de casa",
+            price = "$100 - $200",
+            location = "Centro, CDMX",
+            onClick = onSearchClick
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        JobCard(
+            title = "Ayuda para mudanza",
+            price = "$150 - $300",
+            location = "Del Valle, CDMX",
+            onClick = onSearchClick
+        )
     }
 }
 
@@ -354,9 +248,7 @@ fun CategoryItem(
                 )
             }
 
-            Spacer(
-                modifier = Modifier.height(7.dp)
-            )
+            Spacer(modifier = Modifier.height(7.dp))
 
             Text(
                 text = title,
@@ -377,8 +269,7 @@ fun JobCard(
 ) {
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -400,8 +291,6 @@ fun JobCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                // Icono del trabajo
-
                 Box(
                     modifier = Modifier
                         .size(55.dp)
@@ -418,9 +307,7 @@ fun JobCard(
                     )
                 }
 
-                Spacer(
-                    modifier = Modifier.width(14.dp)
-                )
+                Spacer(modifier = Modifier.width(14.dp))
 
                 Column(
                     modifier = Modifier.weight(1f)
@@ -432,9 +319,7 @@ fun JobCard(
                         fontWeight = FontWeight.Bold
                     )
 
-                    Spacer(
-                        modifier = Modifier.height(4.dp)
-                    )
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
                         text = price,
@@ -457,9 +342,7 @@ fun JobCard(
                 )
             }
 
-            Spacer(
-                modifier = Modifier.height(12.dp)
-            )
+            Spacer(modifier = Modifier.height(12.dp))
 
             Button(
                 onClick = onClick,
@@ -472,9 +355,7 @@ fun JobCard(
                     contentDescription = null
                 )
 
-                Spacer(
-                    modifier = Modifier.width(8.dp)
-                )
+                Spacer(modifier = Modifier.width(8.dp))
 
                 Text("Ver trabajo")
             }

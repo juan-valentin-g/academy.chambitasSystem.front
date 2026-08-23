@@ -13,6 +13,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 
 import com.example.chambitassystemfront.ui.components.BottomNavBar
+import com.example.chambitassystemfront.ui.screens.PublishJobScreenPlaceholder
 import com.example.chambitassystemfront.ui.screens.admin.AdminDashboardScreen
 import com.example.chambitassystemfront.ui.screens.admin.CategoriesScreen
 import com.example.chambitassystemfront.ui.screens.applications.ApplicationsScreen
@@ -41,14 +42,14 @@ fun AppNavigation() {
     val currentRoute = navBackStackEntry?.destination?.route
 
     /*
-     * La barra inferior solamente aparecerá
-     * dentro de las pantallas principales de usuario.
+     * La barra inferior solamente aparece
+     * en las pantallas principales del usuario.
      */
     val routesWithBottomBar = listOf(
         "home",
         "search_jobs",
-        "applications",
-        "chat",
+        "publish_job",
+        "messages",
         "profile"
     )
 
@@ -62,8 +63,13 @@ fun AppNavigation() {
                     onNavigate = { targetRoute ->
 
                         navController.navigate(targetRoute) {
+
                             launchSingleTop = true
                             restoreState = true
+
+                            popUpTo("home") {
+                                saveState = true
+                            }
                         }
                     }
                 )
@@ -84,6 +90,7 @@ fun AppNavigation() {
             composable("welcome") {
 
                 WelcomeScreen(
+
                     onLoginClick = {
                         navController.navigate("login")
                     },
@@ -105,6 +112,7 @@ fun AppNavigation() {
                     onLoginSuccess = {
 
                         navController.navigate("home") {
+
                             popUpTo("login") {
                                 inclusive = true
                             }
@@ -114,6 +122,7 @@ fun AppNavigation() {
                     onAdminLogin = {
 
                         navController.navigate("admin") {
+
                             popUpTo("login") {
                                 inclusive = true
                             }
@@ -199,7 +208,7 @@ fun AppNavigation() {
                     },
 
                     onPublishClick = {
-                        navController.navigate("applications")
+                        navController.navigate("publish_job")
                     },
 
                     onProfileClick = {
@@ -207,7 +216,7 @@ fun AppNavigation() {
                     },
 
                     onChatClick = {
-                        navController.navigate("chat")
+                        navController.navigate("messages")
                     }
                 )
             }
@@ -223,6 +232,29 @@ fun AppNavigation() {
                     onJobClick = { jobId ->
                         navController.navigate("job_detail/$jobId")
                     },
+
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            // =========================================================
+            // PUBLICAR TRABAJO
+            // =========================================================
+
+            composable("publish_job") {
+
+                PublishJobScreenPlaceholder()
+            }
+
+            // =========================================================
+            // MENSAJES
+            // =========================================================
+
+            composable("messages") {
+
+                ChatScreen(
 
                     onBackClick = {
                         navController.popBackStack()
@@ -319,7 +351,7 @@ fun AppNavigation() {
                 MatchScreen(
 
                     onGoToChat = {
-                        navController.navigate("chat")
+                        navController.navigate("messages")
                     },
 
                     onGoToHome = {
@@ -332,19 +364,6 @@ fun AppNavigation() {
                         }
                     },
 
-                    onBackClick = {
-                        navController.popBackStack()
-                    }
-                )
-            }
-
-            // =========================================================
-            // CHAT
-            // =========================================================
-
-            composable("chat") {
-
-                ChatScreen(
                     onBackClick = {
                         navController.popBackStack()
                     }
