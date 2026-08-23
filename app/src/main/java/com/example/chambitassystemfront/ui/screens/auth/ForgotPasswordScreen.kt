@@ -2,7 +2,6 @@ package com.example.chambitassystemfront.ui.screens.auth
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -23,7 +22,7 @@ import com.example.chambitassystemfront.ui.theme.PurplePrimary
 
 @Composable
 fun ForgotPasswordScreen(
-    onBackToLogin: () -> Unit
+    onBackToLogin: () -> Unit // Este es el parámetro clave para que el NavHost o el Login lo invoquen
 ) {
     var email by remember { mutableStateOf("") }
     var isSubmitted by remember { mutableStateOf(false) }
