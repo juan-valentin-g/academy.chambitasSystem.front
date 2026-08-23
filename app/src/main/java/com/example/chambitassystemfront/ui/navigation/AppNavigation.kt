@@ -1,12 +1,18 @@
 package com.example.chambitassystemfront.ui.navigation
 
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 
+import com.example.chambitassystemfront.ui.components.BottomNavBar
 import com.example.chambitassystemfront.ui.screens.admin.AdminDashboardScreen
 import com.example.chambitassystemfront.ui.screens.admin.CategoriesScreen
 import com.example.chambitassystemfront.ui.screens.applications.ApplicationsScreen
@@ -31,327 +37,425 @@ fun AppNavigation() {
 
     val navController = rememberNavController()
 
-    NavHost(
-        navController = navController,
-        startDestination = "welcome"
-    ) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
 
-        composable("welcome") {
+    /*
+     * La barra inferior solamente aparecerá
+     * dentro de las pantallas principales de usuario.
+     */
+    val routesWithBottomBar = listOf(
+        "home",
+        "search_jobs",
+        "applications",
+        "chat",
+        "profile"
+    )
 
-            WelcomeScreen(
-                onLoginClick = {
-                    navController.navigate("login")
-                },
-                onRegisterClick = {
-                    navController.navigate("account_type")
-                }
-            )
-        }
+    Scaffold(
+        bottomBar = {
 
+            if (currentRoute in routesWithBottomBar) {
 
-        composable("login") {
+                BottomNavBar(
+                    currentRoute = currentRoute,
+                    onNavigate = { targetRoute ->
 
-            LoginScreen(
-
-                onLoginSuccess = {
-                    navController.navigate("home") {
-                        popUpTo("login") {
-                            inclusive = true
+                        navController.navigate(targetRoute) {
+                            launchSingleTop = true
+                            restoreState = true
                         }
                     }
-                },
+                )
+            }
+        }
+    ) { innerPadding ->
 
-                onAdminLogin = {
-                    navController.navigate("admin") {
-                        popUpTo("login") {
-                            inclusive = true
+        NavHost(
+            navController = navController,
+            startDestination = "welcome",
+            modifier = Modifier.padding(innerPadding)
+        ) {
+
+            // =========================================================
+            // BIENVENIDA
+            // =========================================================
+
+            composable("welcome") {
+
+                WelcomeScreen(
+                    onLoginClick = {
+                        navController.navigate("login")
+                    },
+
+                    onRegisterClick = {
+                        navController.navigate("account_type")
+                    }
+                )
+            }
+
+            // =========================================================
+            // LOGIN
+            // =========================================================
+
+            composable("login") {
+
+                LoginScreen(
+
+                    onLoginSuccess = {
+
+                        navController.navigate("home") {
+                            popUpTo("login") {
+                                inclusive = true
+                            }
+                        }
+                    },
+
+                    onAdminLogin = {
+
+                        navController.navigate("admin") {
+                            popUpTo("login") {
+                                inclusive = true
+                            }
+                        }
+                    },
+
+                    onRegisterClick = {
+                        navController.navigate("account_type")
+                    },
+
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            // =========================================================
+            // TIPO DE CUENTA
+            // =========================================================
+
+            composable("account_type") {
+
+                AccountTypeScreen(
+
+                    onContinue = {
+                        navController.navigate("register")
+                    },
+
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            // =========================================================
+            // REGISTRO
+            // =========================================================
+
+            composable("register") {
+
+                RegisterScreen(
+
+                    onRegisterSuccess = {
+                        navController.navigate("register_success")
+                    },
+
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            // =========================================================
+            // REGISTRO EXITOSO
+            // =========================================================
+
+            composable("register_success") {
+
+                RegisterSuccessScreen(
+
+                    onContinue = {
+
+                        navController.navigate("login") {
+
+                            popUpTo("welcome") {
+                                inclusive = false
+                            }
                         }
                     }
-                },
+                )
+            }
 
-                onRegisterClick = {
-                    navController.navigate("account_type")
-                },
+            // =========================================================
+            // HOME
+            // =========================================================
 
-                onBackClick = {
-                    navController.popBackStack()
-                }
-            )
-        }
+            composable("home") {
 
+                HomeScreen(
 
-        composable("account_type") {
+                    onSearchClick = {
+                        navController.navigate("search_jobs")
+                    },
 
-            AccountTypeScreen(
+                    onPublishClick = {
+                        navController.navigate("applications")
+                    },
 
-                onContinue = {
-                    navController.navigate("register")
-                },
+                    onProfileClick = {
+                        navController.navigate("profile")
+                    },
 
-                onBackClick = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        composable("register") {
-
-            RegisterScreen(
-
-                onRegisterSuccess = {
-                    navController.navigate("register_success")
-                },
-
-                onBackClick = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-
-        composable("register_success") {
-
-            RegisterSuccessScreen(
-
-                onContinue = {
-
-                    navController.navigate("login") {
-
-                        popUpTo("welcome") {
-                            inclusive = false
-                        }
+                    onChatClick = {
+                        navController.navigate("chat")
                     }
-                }
-            )
-        }
+                )
+            }
 
+            // =========================================================
+            // BUSCAR TRABAJOS
+            // =========================================================
 
-        composable("home") {
+            composable("search_jobs") {
 
-            HomeScreen(
+                SearchJobsScreen(
 
-                onSearchClick = {
-                    navController.navigate("search_jobs")
-                },
+                    onJobClick = { jobId ->
+                        navController.navigate("job_detail/$jobId")
+                    },
 
-                onPublishClick = {
-                    navController.navigate("applications")
-                },
-
-                onProfileClick = {
-                    navController.navigate("profile")
-                },
-
-                onChatClick = {
-                    navController.navigate("chat")
-                }
-            )
-        }
-
-
-        composable("search_jobs") {
-
-            SearchJobsScreen(
-
-                onJobClick = { jobId ->
-                    navController.navigate("job_detail/$jobId")
-                },
-
-                onBackClick = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-
-        composable(
-            route = "job_detail/{jobId}",
-
-            arguments = listOf(
-                navArgument("jobId") {
-                    type = NavType.IntType
-                }
-            )
-        ) { backStackEntry ->
-
-            val jobId =
-                backStackEntry.arguments?.getInt("jobId") ?: 0
-
-            JobDetailScreen(
-
-                jobId = jobId,
-
-                onApplyClick = {
-                    navController.navigate("apply_job/$jobId")
-                },
-
-                onBackClick = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        composable(
-            route = "apply_job/{jobId}",
-
-            arguments = listOf(
-                navArgument("jobId") {
-                    type = NavType.IntType
-                }
-            )
-        ) { backStackEntry ->
-
-            val jobId =
-                backStackEntry.arguments?.getInt("jobId") ?: 0
-
-            ApplyJobScreen(
-
-                jobId = jobId,
-
-                onApplySuccess = {
-                    navController.navigate("applications")
-                },
-
-                onBackClick = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-
-        composable("applications") {
-
-            ApplicationsScreen(
-
-                onMatchClick = {
-                    navController.navigate("match")
-                },
-
-                onBackClick = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-
-        composable("match") {
-
-            MatchScreen(
-
-                onGoToChat = {
-                    navController.navigate("chat")
-                },
-
-                onGoToHome = {
-
-                    navController.navigate("home") {
-
-                        popUpTo("home") {
-                            inclusive = false
-                        }
+                    onBackClick = {
+                        navController.popBackStack()
                     }
-                },
+                )
+            }
 
-                onBackClick = {
-                    navController.popBackStack()
-                }
-            )
-        }
+            // =========================================================
+            // DETALLE DEL TRABAJO
+            // =========================================================
 
+            composable(
+                route = "job_detail/{jobId}",
 
-        composable("chat") {
-
-            ChatScreen(
-                onBackClick = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-
-        composable("job_status") {
-
-            JobStatusScreen(
-
-                onCompleteJob = {
-                    navController.navigate("job_completed")
-                },
-
-                onBackClick = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-
-        composable("job_completed") {
-
-            JobCompletedScreen(
-
-                onGoToReview = {
-                    navController.navigate("review")
-                }
-            )
-        }
-
-
-        composable("review") {
-
-            ReviewScreen(
-
-                onSubmitReview = {
-
-                    navController.navigate("home") {
-
-                        popUpTo("home") {
-                            inclusive = false
-                        }
+                arguments = listOf(
+                    navArgument("jobId") {
+                        type = NavType.IntType
                     }
-                },
+                )
+            ) { backStackEntry ->
 
-                onBackClick = {
-                    navController.popBackStack()
-                }
-            )
-        }
+                val jobId =
+                    backStackEntry.arguments?.getInt("jobId") ?: 0
 
-        composable("profile") {
+                JobDetailScreen(
 
-            ProfileScreen(
+                    jobId = jobId,
 
-                onBackClick = {
-                    navController.popBackStack()
-                },
+                    onApplyClick = {
+                        navController.navigate("apply_job/$jobId")
+                    },
 
-                onApplicationsClick = {
-                    navController.navigate("applications")
-                }
-            )
-        }
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
 
-        composable("admin") {
+            // =========================================================
+            // POSTULARSE
+            // =========================================================
 
-            AdminDashboardScreen(
+            composable(
+                route = "apply_job/{jobId}",
 
-                onCategoriesClick = {
-                    navController.navigate("categories")
-                },
+                arguments = listOf(
+                    navArgument("jobId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
 
-                onBackClick = {
-                    navController.popBackStack()
-                }
-            )
-        }
+                val jobId =
+                    backStackEntry.arguments?.getInt("jobId") ?: 0
 
+                ApplyJobScreen(
 
-        composable("categories") {
+                    jobId = jobId,
 
-            CategoriesScreen(
+                    onApplySuccess = {
+                        navController.navigate("applications")
+                    },
 
-                onBackClick = {
-                    navController.popBackStack()
-                }
-            )
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            // =========================================================
+            // POSTULACIONES
+            // =========================================================
+
+            composable("applications") {
+
+                ApplicationsScreen(
+
+                    onMatchClick = {
+                        navController.navigate("match")
+                    },
+
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            // =========================================================
+            // MATCH
+            // =========================================================
+
+            composable("match") {
+
+                MatchScreen(
+
+                    onGoToChat = {
+                        navController.navigate("chat")
+                    },
+
+                    onGoToHome = {
+
+                        navController.navigate("home") {
+
+                            popUpTo("home") {
+                                inclusive = false
+                            }
+                        }
+                    },
+
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            // =========================================================
+            // CHAT
+            // =========================================================
+
+            composable("chat") {
+
+                ChatScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            // =========================================================
+            // TRABAJO EN PROCESO
+            // =========================================================
+
+            composable("job_status") {
+
+                JobStatusScreen(
+
+                    onCompleteJob = {
+                        navController.navigate("job_completed")
+                    },
+
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            // =========================================================
+            // TRABAJO COMPLETADO
+            // =========================================================
+
+            composable("job_completed") {
+
+                JobCompletedScreen(
+
+                    onGoToReview = {
+                        navController.navigate("review")
+                    }
+                )
+            }
+
+            // =========================================================
+            // RESEÑA
+            // =========================================================
+
+            composable("review") {
+
+                ReviewScreen(
+
+                    onSubmitReview = {
+
+                        navController.navigate("home") {
+
+                            popUpTo("home") {
+                                inclusive = false
+                            }
+                        }
+                    },
+
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            // =========================================================
+            // PERFIL
+            // =========================================================
+
+            composable("profile") {
+
+                ProfileScreen(
+
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+
+                    onApplicationsClick = {
+                        navController.navigate("applications")
+                    }
+                )
+            }
+
+            // =========================================================
+            // ADMINISTRADOR
+            // =========================================================
+
+            composable("admin") {
+
+                AdminDashboardScreen(
+
+                    onCategoriesClick = {
+                        navController.navigate("categories")
+                    },
+
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            // =========================================================
+            // CATEGORÍAS
+            // =========================================================
+
+            composable("categories") {
+
+                CategoriesScreen(
+
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
         }
     }
 }
