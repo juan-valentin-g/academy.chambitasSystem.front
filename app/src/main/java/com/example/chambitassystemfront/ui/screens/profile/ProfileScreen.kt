@@ -23,6 +23,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 @Composable
 fun ProfileScreen(
@@ -31,27 +33,16 @@ fun ProfileScreen(
     onEditProfileClick: () -> Unit,
     onLogoutClick: () -> Unit
 ) {
-
-    OutlinedButton(
-        onClick = onEditProfileClick,
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp)
-    ) {
-        Icon(
-            imageVector = Icons.Default.Edit,
-            contentDescription = null
-        )
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Text("Editar perfil")
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF9F7FF))
-    ) {
+            .verticalScroll(rememberScrollState())
+            .padding(20.dp)
+    ){
+
+        // =========================================================
+        // ENCABEZADO
+        // =========================================================
 
         Row(
             modifier = Modifier
@@ -92,11 +83,19 @@ fun ProfileScreen(
             )
         }
 
+        // =========================================================
+        // CONTENIDO
+        // =========================================================
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(20.dp)
         ) {
+
+            // =====================================================
+            // TARJETA DEL PERFIL
+            // =====================================================
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -113,6 +112,7 @@ fun ProfileScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
+                    // Foto de perfil
                     Box(
                         modifier = Modifier
                             .size(90.dp)
@@ -131,6 +131,7 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Nombre
                     Text(
                         text = "Usuario de Chambitas",
                         fontSize = 22.sp,
@@ -139,6 +140,7 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.height(5.dp))
 
+                    // Estado
                     Text(
                         text = "Disponible para chambitas",
                         fontSize = 13.sp,
@@ -147,6 +149,7 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
+                    // Calificación
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -174,15 +177,19 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.height(18.dp))
 
+                    // =================================================
+                    // BOTÓN EDITAR PERFIL
+                    // =================================================
+
                     OutlinedButton(
-                        onClick = {},
+                        onClick = onEditProfileClick,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp)
                     ) {
 
                         Icon(
                             imageVector = Icons.Default.Edit,
-                            contentDescription = null
+                            contentDescription = "Editar perfil"
                         )
 
                         Spacer(modifier = Modifier.width(8.dp))
@@ -193,6 +200,10 @@ fun ProfileScreen(
             }
 
             Spacer(modifier = Modifier.height(20.dp))
+
+            // =====================================================
+            // ESTADÍSTICAS
+            // =====================================================
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -223,6 +234,10 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(22.dp))
 
+            // =====================================================
+            // MI ACTIVIDAD
+            // =====================================================
+
             Text(
                 text = "Mi actividad",
                 fontSize = 20.sp,
@@ -231,6 +246,7 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Mis postulaciones
             ProfileOption(
                 icon = Icons.Default.List,
                 title = "Mis postulaciones",
@@ -240,24 +256,33 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
+            // Mis trabajos
             ProfileOption(
                 icon = Icons.Default.Work,
                 title = "Mis trabajos",
                 description = "Consulta los trabajos que has realizado",
-                onClick = {}
+                onClick = {
+                    // Pendiente de conectar con su pantalla
+                }
             )
 
             Spacer(modifier = Modifier.height(10.dp))
 
+            // Configuración
             ProfileOption(
                 icon = Icons.Default.Settings,
                 title = "Configuración",
                 description = "Administra las opciones de tu cuenta",
-                onClick = {}
+                onClick = {
+                    // Pendiente de conectar con su pantalla
+                }
             )
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            // =====================================================
+            // CERRAR SESIÓN
+            // =====================================================
 
             OutlinedButton(
                 onClick = onLogoutClick,
@@ -283,6 +308,10 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
+            // =====================================================
+            // REGRESAR
+            // =====================================================
+
             OutlinedButton(
                 onClick = onBackClick,
                 modifier = Modifier.fillMaxWidth(),
@@ -291,7 +320,7 @@ fun ProfileScreen(
 
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
-                    contentDescription = null
+                    contentDescription = "Regresar"
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -301,6 +330,11 @@ fun ProfileScreen(
         }
     }
 }
+
+
+// ================================================================
+// TARJETA DE ESTADÍSTICA
+// ================================================================
 
 @Composable
 private fun ProfileStatCard(
@@ -349,6 +383,11 @@ private fun ProfileStatCard(
         }
     }
 }
+
+
+// ================================================================
+// OPCIÓN DEL PERFIL
+// ================================================================
 
 @Composable
 private fun ProfileOption(
