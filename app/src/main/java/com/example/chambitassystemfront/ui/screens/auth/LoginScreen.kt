@@ -22,7 +22,8 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onAdminLogin: () -> Unit,
     onRegisterClick: () -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onForgotPasswordClick: () -> Unit
 ) {
 
     var email by remember { mutableStateOf("") }
@@ -81,8 +82,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         TextButton(
-            onClick = {
-            }
+            onClick = onForgotPasswordClick
         ) {
             Text("¿Olvidaste tu contraseña?")
         }
