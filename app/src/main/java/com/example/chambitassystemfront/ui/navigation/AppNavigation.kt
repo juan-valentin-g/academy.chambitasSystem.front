@@ -34,7 +34,9 @@ import com.example.chambitassystemfront.ui.screens.jobs.JobStatusScreen
 import com.example.chambitassystemfront.ui.screens.jobs.SearchJobsScreen
 import com.example.chambitassystemfront.ui.screens.match.MatchScreen
 import com.example.chambitassystemfront.ui.screens.profile.ProfileScreen
+import com.example.chambitassystemfront.ui.screens.profile.EditProfileScreen
 import com.example.chambitassystemfront.ui.screens.reviews.ReviewScreen
+
 
 @Composable
 fun AppNavigation() {
@@ -277,8 +279,6 @@ fun AppNavigation() {
                             popUpTo("home") {
                                 inclusive = false
                             }
-
-                            launchSingleTop = true
                         }
                     }
                 )
@@ -476,6 +476,22 @@ fun AppNavigation() {
 
                     onApplicationsClick = {
                         navController.navigate("applications")
+                    },
+
+                    onEditProfileClick = {
+                        navController.navigate("edit_profile")
+                    },
+
+                    onLogoutClick = {
+
+                        navController.navigate("login") {
+
+                            popUpTo("home") {
+                                inclusive = true
+                            }
+
+                            launchSingleTop = true
+                        }
                     }
                 )
             }
@@ -506,6 +522,14 @@ fun AppNavigation() {
 
                 CategoriesScreen(
 
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable("edit_profile") {
+                EditProfileScreen(
                     onBackClick = {
                         navController.popBackStack()
                     }

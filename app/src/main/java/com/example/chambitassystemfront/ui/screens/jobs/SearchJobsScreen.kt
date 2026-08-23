@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Work
@@ -20,6 +20,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+data class SearchJob(
+    val id: Int,
+    val title: String,
+    val category: String,
+    val price: String,
+    val location: String,
+    val description: String
+)
+
 @Composable
 fun SearchJobsScreen(
     onJobClick: (Int) -> Unit,
@@ -28,6 +37,55 @@ fun SearchJobsScreen(
 
     var searchText by remember {
         mutableStateOf("")
+    }
+
+    var selectedCategory by remember {
+        mutableStateOf("Todas")
+    }
+
+    val jobs = remember {
+        listOf(
+            SearchJob(
+                id = 1,
+                title = "Limpieza de casa",
+                category = "Limpieza",
+                price = "$200",
+                location = "Ciudad de México",
+                description = "Se busca persona para realizar limpieza general."
+            ),
+            SearchJob(
+                id = 2,
+                title = "Ayuda para mudanza",
+                category = "Mudanzas",
+                price = "$350",
+                location = "Ciudad de México",
+                description = "Se necesita ayuda para cargar y acomodar muebles."
+            ),
+            SearchJob(
+                id = 3,
+                title = "Cortar césped",
+                category = "Jardinería",
+                price = "$250",
+                location = "Ciudad de México",
+                description = "Se necesita persona para mantenimiento de jardín."
+            )
+        )
+    }
+
+    val filteredJobs = jobs.filter { job ->
+
+        val matchesSearch =
+            searchText.isBlank() ||
+                    job.title.contains(searchText, ignoreCase = true) ||
+                    job.category.contains(searchText, ignoreCase = true) ||
+                    job.location.contains(searchText, ignoreCase = true) ||
+                    job.description.contains(searchText, ignoreCase = true)
+
+        val matchesCategory =
+            selectedCategory == "Todas" ||
+                    job.category == selectedCategory
+
+        matchesSearch && matchesCategory
     }
 
     Column(
@@ -45,6 +103,7 @@ fun SearchJobsScreen(
             IconButton(
                 onClick = onBackClick
             ) {
+
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Regresar",
@@ -59,20 +118,14 @@ fun SearchJobsScreen(
                 modifier = Modifier.weight(1f)
             )
 
-            IconButton(
-                onClick = {}
-            ) {
-                Icon(
-                    imageVector = Icons.Default.FilterList,
-                    contentDescription = "Filtros",
-                    tint = Color(0xFF4B20C9)
-                )
-            }
+            Icon(
+                imageVector = Icons.Default.FilterList,
+                contentDescription = "Filtros",
+                tint = Color(0xFF4B20C9)
+            )
         }
 
-        Spacer(
-            modifier = Modifier.height(12.dp)
-        )
+        Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(
             value = searchText,
@@ -83,25 +136,13 @@ fun SearchJobsScreen(
             singleLine = true,
             shape = RoundedCornerShape(15.dp),
             placeholder = {
-                Text(
-                    text = "Buscar trabajo, categoría..."
-                )
+                Text("Buscar trabajo, categoría...")
             },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = "Buscar"
                 )
-            },
-            trailingIcon = {
-                IconButton(
-                    onClick = {}
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.FilterList,
-                        contentDescription = "Filtrar"
-                    )
-                }
             },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color(0xFF4B20C9),
@@ -111,9 +152,7 @@ fun SearchJobsScreen(
             )
         )
 
-        Spacer(
-            modifier = Modifier.height(18.dp)
-        )
+        Spacer(modifier = Modifier.height(18.dp))
 
         Text(
             text = "Categorías",
@@ -121,9 +160,7 @@ fun SearchJobsScreen(
             fontWeight = FontWeight.Bold
         )
 
-        Spacer(
-            modifier = Modifier.height(10.dp)
-        )
+        Spacer(modifier = Modifier.height(10.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -131,24 +168,41 @@ fun SearchJobsScreen(
         ) {
 
             CategoryChip(
+                text = "Todas",
+                selected = selectedCategory == "Todas",
+                onClick = {
+                    selectedCategory = "Todas"
+                }
+            )
+
+            CategoryChip(
                 text = "Limpieza",
-                selected = true
+                selected = selectedCategory == "Limpieza",
+                onClick = {
+                    selectedCategory = "Limpieza"
+                }
             )
 
             CategoryChip(
                 text = "Mudanzas",
-                selected = false
-            )
-
-            CategoryChip(
-                text = "Jardinería",
-                selected = false
+                selected = selectedCategory == "Mudanzas",
+                onClick = {
+                    selectedCategory = "Mudanzas"
+                }
             )
         }
 
-        Spacer(
-            modifier = Modifier.height(22.dp)
+        Spacer(modifier = Modifier.height(10.dp))
+
+        CategoryChip(
+            text = "Jardinería",
+            selected = selectedCategory == "Jardinería",
+            onClick = {
+                selectedCategory = "Jardinería"
+            }
         )
+
+        Spacer(modifier = Modifier.height(22.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -163,50 +217,51 @@ fun SearchJobsScreen(
             )
 
             Text(
-                text = "2 resultados",
+                text = "${filteredJobs.size} resultados",
                 fontSize = 12.sp,
                 color = Color.Gray
             )
         }
 
-        Spacer(
-            modifier = Modifier.height(12.dp)
-        )
+        Spacer(modifier = Modifier.height(12.dp))
 
-        SearchJobCard(
-            title = "Limpieza de casa",
-            price = "$200",
-            location = "Ciudad de México",
-            description = "Se busca persona para realizar limpieza general.",
-            onClick = {
-                onJobClick(1)
+        if (filteredJobs.isEmpty()) {
+
+            Text(
+                text = "No se encontraron trabajos.",
+                color = Color.Gray,
+                modifier = Modifier.padding(top = 20.dp)
+            )
+
+        } else {
+
+            filteredJobs.forEach { job ->
+
+                SearchJobCard(
+                    title = job.title,
+                    price = job.price,
+                    location = job.location,
+                    description = job.description,
+                    onClick = {
+                        onJobClick(job.id)
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
             }
-        )
-
-        Spacer(
-            modifier = Modifier.height(12.dp)
-        )
-
-        SearchJobCard(
-            title = "Ayuda para mudanza",
-            price = "$350",
-            location = "Ciudad de México",
-            description = "Se necesita ayuda para cargar y acomodar muebles.",
-            onClick = {
-                onJobClick(2)
-            }
-        )
+        }
     }
 }
-
 
 @Composable
 private fun CategoryChip(
     text: String,
-    selected: Boolean
+    selected: Boolean,
+    onClick: () -> Unit
 ) {
 
     Surface(
+        onClick = onClick,
         shape = RoundedCornerShape(20.dp),
         color = if (selected) {
             Color(0xFF4B20C9)
@@ -239,7 +294,6 @@ private fun CategoryChip(
         )
     }
 }
-
 
 @Composable
 private fun SearchJobCard(
@@ -289,9 +343,7 @@ private fun SearchJobCard(
                     )
                 }
 
-                Spacer(
-                    modifier = Modifier.width(12.dp)
-                )
+                Spacer(modifier = Modifier.width(12.dp))
 
                 Column(
                     modifier = Modifier.weight(1f)
@@ -303,9 +355,7 @@ private fun SearchJobCard(
                         fontWeight = FontWeight.Bold
                     )
 
-                    Spacer(
-                        modifier = Modifier.height(4.dp)
-                    )
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
                         text = price,
@@ -315,21 +365,14 @@ private fun SearchJobCard(
                     )
                 }
 
-                IconButton(
-                    onClick = {}
-                ) {
-
-                    Icon(
-                        imageVector = Icons.Default.FavoriteBorder,
-                        contentDescription = "Favorito",
-                        tint = Color.Gray
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Default.FavoriteBorder,
+                    contentDescription = "Favorito",
+                    tint = Color.Gray
+                )
             }
 
-            Spacer(
-                modifier = Modifier.height(10.dp)
-            )
+            Spacer(modifier = Modifier.height(10.dp))
 
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -342,9 +385,7 @@ private fun SearchJobCard(
                     modifier = Modifier.size(18.dp)
                 )
 
-                Spacer(
-                    modifier = Modifier.width(5.dp)
-                )
+                Spacer(modifier = Modifier.width(5.dp))
 
                 Text(
                     text = location,
@@ -353,9 +394,7 @@ private fun SearchJobCard(
                 )
             }
 
-            Spacer(
-                modifier = Modifier.height(8.dp)
-            )
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = description,
@@ -363,9 +402,7 @@ private fun SearchJobCard(
                 color = Color.DarkGray
             )
 
-            Spacer(
-                modifier = Modifier.height(14.dp)
-            )
+            Spacer(modifier = Modifier.height(14.dp))
 
             Button(
                 onClick = onClick,
@@ -373,18 +410,7 @@ private fun SearchJobCard(
                 shape = RoundedCornerShape(12.dp)
             ) {
 
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = null
-                )
-
-                Spacer(
-                    modifier = Modifier.width(8.dp)
-                )
-
-                Text(
-                    text = "Ver detalle"
-                )
+                Text("Ver detalle")
             }
         }
     }
