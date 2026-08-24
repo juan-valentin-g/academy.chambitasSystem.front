@@ -48,7 +48,7 @@ fun BottomNavBar(
         tonalElevation = 8.dp
     ) {
         items.forEach { item ->
-            val isSelected = currentRoute == item.route
+            val isSelected = currentRoute == item.route || (item.route == "home" && currentRoute?.startsWith("home") == true)
 
             if (item == BottomNavItem.Publish) {
                 NavigationBarItem(
@@ -76,7 +76,11 @@ fun BottomNavBar(
             } else {
                 NavigationBarItem(
                     selected = isSelected,
-                    onClick = { onNavigate(item.route) },
+                    onClick = {
+                        if (currentRoute != item.route) {
+                            onNavigate(item.route)
+                        }
+                    },
                     icon = {
                         Icon(
                             imageVector = item.icon,

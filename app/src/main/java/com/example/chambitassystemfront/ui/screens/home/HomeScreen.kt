@@ -24,7 +24,8 @@ fun HomeScreen(
     onSearchClick: () -> Unit,
     onPublishClick: () -> Unit,
     onProfileClick: () -> Unit,
-    onChatClick: () -> Unit
+    onChatClick: () -> Unit,
+    onViewJobClick: () -> Unit = onSearchClick
 ) {
 
     Column(
@@ -191,7 +192,7 @@ fun HomeScreen(
             title = "Limpieza de casa",
             price = "$100 - $200",
             location = "Centro, CDMX",
-            onClick = onSearchClick
+            onClick = onViewJobClick
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -200,7 +201,7 @@ fun HomeScreen(
             title = "Ayuda para mudanza",
             price = "$150 - $300",
             location = "Del Valle, CDMX",
-            onClick = onSearchClick
+            onClick = onViewJobClick
         )
     }
 }

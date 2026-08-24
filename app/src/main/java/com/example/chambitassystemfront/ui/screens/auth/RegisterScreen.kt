@@ -18,6 +18,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.chambitassystemfront.data.model.RegisterRequestDto
+import com.example.chambitassystemfront.data.remote.ApiClient
+import com.example.chambitassystemfront.data.repository.AuthRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun RegisterScreen(
@@ -36,6 +42,10 @@ fun RegisterScreen(
     var phoneError by remember { mutableStateOf("") }
     var passwordError by remember { mutableStateOf("") }
     var confirmPasswordError by remember { mutableStateOf("") }
+    var generalError by remember { mutableStateOf("") } // Para mostrar el error exacto de la API
+
+    val coroutineScope = rememberCoroutineScope()
+    val authRepository = remember { AuthRepository(ApiClient.authApiService) }
 
     Column(
         modifier = Modifier
@@ -56,7 +66,17 @@ fun RegisterScreen(
             fontSize = 16.sp
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Mensaje detallado si ocurre un fallo al conectar con la API
+        if (generalError.isNotEmpty()) {
+            Text(
+                text = generalError,
+                color = Color.Red,
+                fontSize = 13.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
 
         // =========================
         // NOMBRE
@@ -67,6 +87,7 @@ fun RegisterScreen(
             onValueChange = {
                 name = it
                 nameError = ""
+                generalError = ""
             },
             label = {
                 Text("Nombre completo")
@@ -88,11 +109,11 @@ fun RegisterScreen(
                 text = nameError,
                 color = Color.Red,
                 fontSize = 12.sp,
-                modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+                modifier = Modifier.padding(start = 4.dp, top = 2.dp)
             )
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // =========================
         // CORREO
@@ -103,6 +124,7 @@ fun RegisterScreen(
             onValueChange = {
                 email = it
                 emailError = ""
+                generalError = ""
             },
             label = {
                 Text("Correo electrónico")
@@ -124,11 +146,11 @@ fun RegisterScreen(
                 text = emailError,
                 color = Color.Red,
                 fontSize = 12.sp,
-                modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+                modifier = Modifier.padding(start = 4.dp, top = 2.dp)
             )
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // =========================
         // TELÉFONO
@@ -140,6 +162,7 @@ fun RegisterScreen(
                 if (it.all { character -> character.isDigit() } && it.length <= 10) {
                     phone = it
                     phoneError = ""
+                    generalError = ""
                 }
             },
             label = {
@@ -165,11 +188,11 @@ fun RegisterScreen(
                 text = phoneError,
                 color = Color.Red,
                 fontSize = 12.sp,
-                modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+                modifier = Modifier.padding(start = 4.dp, top = 2.dp)
             )
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // =========================
         // CONTRASEÑA
@@ -180,6 +203,7 @@ fun RegisterScreen(
             onValueChange = {
                 password = it
                 passwordError = ""
+                generalError = ""
             },
             label = {
                 Text("Contraseña")
@@ -202,11 +226,11 @@ fun RegisterScreen(
                 text = passwordError,
                 color = Color.Red,
                 fontSize = 12.sp,
-                modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+                modifier = Modifier.padding(start = 4.dp, top = 2.dp)
             )
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // =========================
         // CONFIRMAR CONTRASEÑA
@@ -217,6 +241,7 @@ fun RegisterScreen(
             onValueChange = {
                 confirmPassword = it
                 confirmPasswordError = ""
+                generalError = ""
             },
             label = {
                 Text("Confirmar contraseña")
@@ -239,11 +264,11 @@ fun RegisterScreen(
                 text = confirmPasswordError,
                 color = Color.Red,
                 fontSize = 12.sp,
-                modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+                modifier = Modifier.padding(start = 4.dp, top = 2.dp)
             )
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // =========================
         // BOTÓN REGISTRAR
@@ -258,138 +283,72 @@ fun RegisterScreen(
                 phoneError = ""
                 passwordError = ""
                 confirmPasswordError = ""
+                generalError = ""
 
                 var isValid = true
 
-                // -------------------------
-                // VALIDAR NOMBRE
-                // -------------------------
-
+                // Validaciones locales
                 when {
-                    name.isBlank() -> {
-                        nameError = "Ingresa tu nombre completo."
-                        isValid = false
-                    }
-
-                    name.trim().length < 3 -> {
-                        nameError = "El nombre debe tener al menos 3 caracteres."
-                        isValid = false
-                    }
-
-                    !name.trim().matches(
-                        Regex("^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$")
-                    ) -> {
-                        nameError = "El nombre solo puede contener letras."
-                        isValid = false
-                    }
+                    name.isBlank() -> { nameError = "Ingresa tu nombre completo."; isValid = false }
+                    name.trim().length < 3 -> { nameError = "El nombre debe tener al menos 3 caracteres."; isValid = false }
                 }
 
-                // -------------------------
-                // VALIDAR CORREO
-                // -------------------------
-
-                val emailRegex = Regex(
-                    "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$"
-                )
-
+                val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")
                 when {
-                    email.isBlank() -> {
-                        emailError = "Ingresa tu correo electrónico."
-                        isValid = false
-                    }
-
-                    email.contains(" ") -> {
-                        emailError = "El correo no puede contener espacios."
-                        isValid = false
-                    }
-
-                    !email.matches(emailRegex) -> {
-                        emailError = "Ingresa un correo electrónico válido."
-                        isValid = false
-                    }
+                    email.isBlank() -> { emailError = "Ingresa tu correo electrónico."; isValid = false }
+                    !email.matches(emailRegex) -> { emailError = "Ingresa un correo electrónico válido."; isValid = false }
                 }
 
-                // -------------------------
-                // VALIDAR TELÉFONO
-                // -------------------------
-
                 when {
-                    phone.isBlank() -> {
-                        phoneError = "Ingresa tu número de teléfono."
-                        isValid = false
-                    }
-
-                    phone.length != 10 -> {
-                        phoneError = "El teléfono debe tener exactamente 10 dígitos."
-                        isValid = false
-                    }
+                    phone.isBlank() -> { phoneError = "Ingresa tu número de teléfono."; isValid = false }
+                    phone.length != 10 -> { phoneError = "El teléfono debe tener exactamente 10 dígitos."; isValid = false }
                 }
 
-                // -------------------------
-                // VALIDAR CONTRASEÑA
-                // -------------------------
-
                 when {
-                    password.isBlank() -> {
-                        passwordError = "Ingresa una contraseña."
-                        isValid = false
-                    }
-
-                    password.length < 8 -> {
-                        passwordError =
-                            "La contraseña debe tener al menos 8 caracteres."
-                        isValid = false
-                    }
-
-                    password.contains(" ") -> {
-                        passwordError =
-                            "La contraseña no puede contener espacios."
-                        isValid = false
-                    }
-
-                    !password.any { it.isUpperCase() } -> {
-                        passwordError =
-                            "Debe contener al menos una letra mayúscula."
-                        isValid = false
-                    }
-
-                    !password.any { it.isLowerCase() } -> {
-                        passwordError =
-                            "Debe contener al menos una letra minúscula."
-                        isValid = false
-                    }
-
-                    !password.any { it.isDigit() } -> {
-                        passwordError =
-                            "Debe contener al menos un número."
-                        isValid = false
-                    }
+                    password.isBlank() -> { passwordError = "Ingresa una contraseña."; isValid = false }
+                    password.length < 6 -> { passwordError = "La contraseña debe tener al menos 6 caracteres."; isValid = false }
                 }
 
-                // -------------------------
-                // CONFIRMAR CONTRASEÑA
-                // -------------------------
-
                 when {
-                    confirmPassword.isBlank() -> {
-                        confirmPasswordError =
-                            "Confirma tu contraseña."
-                        isValid = false
-                    }
-
-                    password != confirmPassword -> {
-                        confirmPasswordError =
-                            "Las contraseñas no coinciden."
-                        isValid = false
-                    }
+                    confirmPassword.isBlank() -> { confirmPasswordError = "Confirma tu contraseña."; isValid = false }
+                    password != confirmPassword -> { confirmPasswordError = "Las contraseñas no coinciden."; isValid = false }
                 }
 
-                // -------------------------
-                // REGISTRO CORRECTO
-                // -------------------------
-
+                // Si pasa las validaciones locales, enviamos los datos a la API
                 if (isValid) {
-                    onRegisterSuccess()
+                    coroutineScope.launch(Dispatchers.IO) {
+                        try {
+                            val result = authRepository.register(
+                                RegisterRequestDto(
+                                    nombre = name.trim(),
+                                    correo = email.trim(),
+                                    telefono = phone.trim(),
+                                    contrasena = password
+                                )
+                            )
+
+                            result.fold(
+                                onSuccess = {
+                                    withContext(Dispatchers.Main) {
+                                        onRegisterSuccess()
+                                    }
+                                },
+                                onFailure = { error ->
+                                    error.printStackTrace()
+                                    val errorMessage = error.localizedMessage ?: "Error desconocido"
+                                    withContext(Dispatchers.Main) {
+                                        generalError = "Fallo de API: $errorMessage"
+                                    }
+                                }
+                            )
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            val catchMessage = e.localizedMessage ?: "Excepción de red"
+                            withContext(Dispatchers.Main) {
+                                generalError = "Excepción: $catchMessage"
+                            }
+                        }
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -400,7 +359,7 @@ fun RegisterScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         TextButton(
             onClick = onBackClick,

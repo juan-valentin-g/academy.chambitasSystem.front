@@ -22,7 +22,7 @@ import com.example.chambitassystemfront.ui.theme.PurplePrimary
 
 @Composable
 fun ForgotPasswordScreen(
-    onBackToLogin: () -> Unit // Este es el parámetro clave para que el NavHost o el Login lo invoquen
+    onBackToLogin: () -> Unit
 ) {
 
     var email by remember { mutableStateOf("") }
@@ -31,22 +31,17 @@ fun ForgotPasswordScreen(
 
     // Validación del correo
     fun validateEmail(): Boolean {
-
         return when {
-
             email.isBlank() -> {
                 emailError = "El correo electrónico es obligatorio."
                 false
             }
-
             !android.util.Patterns.EMAIL_ADDRESS
                 .matcher(email.trim())
                 .matches() -> {
-
                 emailError = "Ingresa un correo electrónico válido."
                 false
             }
-
             else -> {
                 emailError = ""
                 true
@@ -57,27 +52,25 @@ fun ForgotPasswordScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color(0xFFF9F7FF)) // Fondo suave a juego con tu app
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
 
-        // Icono principal
+        // Icono principal estilizado
         Box(
             modifier = Modifier
                 .size(80.dp)
                 .clip(RoundedCornerShape(20.dp))
-                .background(
-                    PurplePrimary.copy(alpha = 0.1f)
-                ),
+                .background(PurplePrimary.copy(alpha = 0.1f)),
             contentAlignment = Alignment.Center
         ) {
-
             Icon(
                 imageVector = Icons.Filled.LockReset,
                 contentDescription = "Recuperar contraseña",
                 tint = PurplePrimary,
-                modifier = Modifier.size(44.dp)
+                modifier = Modifier.size(40.dp)
             )
         }
 
@@ -85,7 +78,7 @@ fun ForgotPasswordScreen(
 
         Text(
             text = "¿Olvidaste tu contraseña?",
-            fontSize = 22.sp,
+            fontSize = 26.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center
@@ -104,25 +97,16 @@ fun ForgotPasswordScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Campo de correo
+        // Campo de correo con icono integrado
         OutlinedTextField(
             value = email,
-
             onValueChange = {
                 email = it
-
-                // Limpiar errores al escribir nuevamente
                 emailError = ""
-
-                // Si modifica el correo después de enviarlo,
-                // quitamos el mensaje de éxito.
                 isSubmitted = false
             },
-
-            placeholder = {
-                Text("Correo electrónico")
-            },
-
+            label = { Text("Correo electrónico") },
+            placeholder = { Text("ejemplo@correo.com") },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Filled.Email,
@@ -130,19 +114,12 @@ fun ForgotPasswordScreen(
                     tint = PurplePrimary
                 )
             },
-
             singleLine = true,
-
             modifier = Modifier.fillMaxWidth(),
-
-            shape = RoundedCornerShape(14.dp),
-
+            shape = RoundedCornerShape(12.dp),
             isError = emailError.isNotEmpty(),
-
             supportingText = {
-
                 if (emailError.isNotEmpty()) {
-
                     Text(
                         text = emailError,
                         color = MaterialTheme.colorScheme.error
@@ -151,40 +128,34 @@ fun ForgotPasswordScreen(
             }
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Botón enviar
         Button(
             onClick = {
-
                 if (validateEmail()) {
                     isSubmitted = true
                 } else {
                     isSubmitted = false
                 }
             },
-
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
-
-            shape = RoundedCornerShape(14.dp),
-
+            shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = PurplePrimary
             )
         ) {
-
             Text(
-                text = "Enviar correo",
+                text = "Enviar instrucciones",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )
         }
 
-        // Mensaje de éxito
+        // Mensaje de éxito estilizado
         if (isSubmitted) {
-
             Spacer(modifier = Modifier.height(16.dp))
 
             Surface(
@@ -192,7 +163,6 @@ fun ForgotPasswordScreen(
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-
                 Text(
                     text = "✓ Se ha enviado un enlace a tu correo.",
                     color = Color(0xFF2E7D32),
@@ -204,16 +174,17 @@ fun ForgotPasswordScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(28.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         TextButton(
-            onClick = onBackToLogin
+            onClick = onBackToLogin,
+            modifier = Modifier.fillMaxWidth()
         ) {
-
             Text(
-                text = "Regresar al inicio de sesión",
+                text = "← Regresar al inicio de sesión",
                 color = PurplePrimary,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 15.sp
             )
         }
     }
@@ -225,9 +196,7 @@ fun ForgotPasswordScreen(
 )
 @Composable
 fun ForgotPasswordScreenPreview() {
-
     ChambitasSystemFrontTheme {
-
         ForgotPasswordScreen(
             onBackToLogin = {}
         )

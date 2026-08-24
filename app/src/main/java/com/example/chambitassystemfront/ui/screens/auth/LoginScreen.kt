@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.chambitassystemfront.data.model.LoginRequestDto
@@ -37,6 +38,8 @@ fun LoginScreen(
 
     var emailError by remember { mutableStateOf("") }
     var passwordError by remember { mutableStateOf("") }
+    var generalError by remember { mutableStateOf("") } // Estado para errores de red o credenciales incorrectas
+
     val coroutineScope = rememberCoroutineScope()
 
     // Instanciamos el repositorio usando el servicio de la API
@@ -99,11 +102,22 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Mensaje de error general si falla el inicio de sesión
+        if (generalError.isNotEmpty()) {
+            Text(
+                text = generalError,
+                color = Color.Red,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+        }
+
         OutlinedTextField(
             value = email,
             onValueChange = {
                 email = it
                 emailError = ""
+                generalError = ""
             },
             label = { Text("Correo electrónico") },
             placeholder = { Text("ejemplo@correo.com") },
@@ -125,6 +139,7 @@ fun LoginScreen(
             onValueChange = {
                 password = it
                 passwordError = ""
+                generalError = ""
             },
             label = { Text("Contraseña") },
             singleLine = true,
@@ -154,6 +169,7 @@ fun LoginScreen(
                 val passwordIsValid = validatePassword()
 
                 if (emailIsValid && passwordIsValid) {
+                    generalError = ""
                     coroutineScope.launch(Dispatchers.IO) {
                         val result = authRepository.login(
                             LoginRequestDto(correo = email.trim(), contrasena = password)
@@ -173,6 +189,9 @@ fun LoginScreen(
                             },
                             onFailure = { error ->
                                 error.printStackTrace()
+                                withContext(Dispatchers.Main) {
+                                    generalError = "Correo o contraseña incorrectos."
+                                }
                             }
                         )
                     }

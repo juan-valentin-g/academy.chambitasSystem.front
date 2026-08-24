@@ -218,6 +218,7 @@ fun AppNavigation() {
             // HOME
             // =========================================================
 
+
             composable("home") {
 
                 HomeScreen(
@@ -236,6 +237,12 @@ fun AppNavigation() {
 
                     onChatClick = {
                         navController.navigate("messages")
+                    },
+
+                    // Añadimos esta línea para que al hacer clic en "Ver trabajo"
+                    // te lleve al detalle del trabajo (ID 1) permitiendo regresar limpio con popBackStack()
+                    onViewJobClick = {
+                        navController.navigate("job_detail/1")
                     }
                 )
             }
