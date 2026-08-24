@@ -52,7 +52,6 @@ fun AppNavigation() {
     val context = LocalContext.current
     val categoryViewModel: CategoryViewModel = viewModel()
 
-    // 💡 BLOQUE NUEVO: Recupera automáticamente el token de SharedPreferences al iniciar la navegación
     LaunchedEffect(Unit) {
         if (ApiClient.userToken.isNullOrEmpty()) {
             val sharedPreferences = context.getSharedPreferences("ChambitasPrefs", Context.MODE_PRIVATE)
@@ -63,7 +62,6 @@ fun AppNavigation() {
         }
     }
 
-    // 💡 Función para obtener el token dinámicamente en cada llamada
     fun getSessionToken(): String {
         val raw = ApiClient.userToken ?: ""
         return if (raw.startsWith("Bearer ")) raw else "Bearer $raw"
@@ -76,6 +74,7 @@ fun AppNavigation() {
         "messages",
         "profile"
     )
+
     Scaffold(
         bottomBar = {
             if (currentRoute in routesWithBottomBar) {
@@ -99,230 +98,165 @@ fun AppNavigation() {
             startDestination = "welcome",
             modifier = Modifier.padding(innerPadding)
         ) {
-// =========================================================
-// BIENVENIDA
-// =========================================================
+            // BIENVENIDA
             composable("welcome") {
                 WelcomeScreen(
-                    onLoginClick = {
-                        navController.navigate("login")
-                    },
-                    onRegisterClick = {
-                        navController.navigate("account_type")
-                    }
+                    onLoginClick = { navController.navigate("login") },
+                    onRegisterClick = { navController.navigate("account_type") }
                 )
             }
-// =========================================================
-// LOGIN
-// =========================================================
+
+            // LOGIN
             composable("login") {
                 LoginScreen(
                     onLoginSuccess = {
-                        navController.navigate("home") {
-                            popUpTo("welcome") {
-                                inclusive = true
-                            }
-                        }
+                        navController.navigate("home") { popUpTo("welcome") { inclusive = true } }
                     },
                     onAdminLogin = {
-                        navController.navigate("admin") {
-                            popUpTo("login") {
-                                inclusive = true
-                            }
-                        }
+                        navController.navigate("admin") { popUpTo("login") { inclusive = true } }
                     },
-                    onRegisterClick = {
-                        navController.navigate("account_type")
-                    },
-                    onBackClick = {
-                        navController.popBackStack()
-                    },
-                    onForgotPasswordClick = {
-                        navController.navigate("forgot_password")
-                    }
+                    onRegisterClick = { navController.navigate("account_type") },
+                    onBackClick = { navController.popBackStack() },
+                    onForgotPasswordClick = { navController.navigate("forgot_password") }
                 )
             }
-// =========================================================
-// RECUPERAR CONTRASEÑA
-// =========================================================
+
+            // RECUPERAR CONTRASEÑA
             composable("forgot_password") {
-                ForgotPasswordScreen(
-                    onBackToLogin = {
-                        navController.popBackStack()
-                    }
-                )
+                ForgotPasswordScreen(onBackToLogin = { navController.popBackStack() })
             }
-// =========================================================
-// TIPO DE CUENTA
-// =========================================================
+
+            // TIPO DE CUENTA
             composable("account_type") {
                 AccountTypeScreen(
-                    onContinue = {
-                        navController.navigate("register")
-                    },
-                    onBackClick = {
-                        navController.popBackStack()
-                    }
+                    onContinue = { navController.navigate("register") },
+                    onBackClick = { navController.popBackStack() }
                 )
             }
-// =========================================================
-// REGISTRO
-// =========================================================
+
+            // REGISTRO
             composable("register") {
                 RegisterScreen(
-                    onRegisterSuccess = {
-                        navController.navigate("register_success")
-                    },
-                    onBackClick = {
-                        navController.popBackStack()
-                    }
+                    onRegisterSuccess = { navController.navigate("register_success") },
+                    onBackClick = { navController.popBackStack() }
                 )
             }
-// =========================================================
-// REGISTRO EXITOSO
-// =========================================================
+
+            // REGISTRO EXITOSO
             composable("register_success") {
                 RegisterSuccessScreen(
                     onContinue = {
-                        navController.navigate("login") {
-                            popUpTo("welcome") {
-                                inclusive = false
-                            }
-                        }
+                        navController.navigate("login") { popUpTo("welcome") { inclusive = false } }
                     }
                 )
             }
-// =========================================================
-// HOME
-// =========================================================
+
+            // HOME
             composable("home") {
                 HomeScreen(
                     categoryViewModel = categoryViewModel,
                     token = getSessionToken(),
-                    onSearchClick = {
-                        navController.navigate("search_jobs")
-                    },
-                    onPublishClick = {
-                        navController.navigate("publish_job")
-                    },
-                    onProfileClick = {
-                        navController.navigate("profile")
-                    },
-                    onChatClick = {
-                        navController.navigate("messages")
-                    },
-                    onViewJobClick = { jobId ->
-                        navController.navigate("job_detail/$jobId")
-                    },
-                    jobViewModel = viewModel(
-                        factory = JobViewModelFactory(
-                            JobsRepository()
-                        )
-                    )
+                    onSearchClick = { navController.navigate("search_jobs") },
+                    onPublishClick = { navController.navigate("publish_job") },
+                    onProfileClick = { navController.navigate("profile") },
+                    onChatClick = { navController.navigate("messages") },
+                    onViewJobClick = { jobId -> navController.navigate("job_detail/$jobId") },
+                    jobViewModel = viewModel(factory = JobViewModelFactory(JobsRepository()))
                 )
             }
-// =========================================================
-// BUSCAR TRABAJOS
-// =========================================================
+
+            // BUSCAR TRABAJOS
             composable("search_jobs") {
                 SearchJobsScreen(
                     categoryViewModel = categoryViewModel,
-                    jobViewModel = viewModel(
-                        factory = JobViewModelFactory(
-                            JobsRepository()
-                        )
-                    ),
+                    jobViewModel = viewModel(factory = JobViewModelFactory(JobsRepository())),
                     token = getSessionToken(),
-                    onJobClick = { jobId ->
-                        navController.navigate("job_detail/$jobId")
-                    },
-                    onBackClick = {
-                        navController.popBackStack()
-                    }
+                    onJobClick = { jobId -> navController.navigate("job_detail/$jobId") },
+                    onBackClick = { navController.popBackStack() }
                 )
             }
-// =========================================================
-// PUBLICAR TRABAJO
-// =========================================================
+
+            // PUBLICAR TRABAJO
             composable("publish_job") {
                 PostaJobScreen(
                     token = getSessionToken(),
-                    jobViewModel = viewModel(
-                        factory = JobViewModelFactory(
-                            JobsRepository()
-                        )
-                    ),
-                    onBackClick = {
-                        navController.popBackStack()
-                    },
+                    jobViewModel = viewModel(factory = JobViewModelFactory(JobsRepository())),
+                    onBackClick = { navController.popBackStack() },
                     onPublishSuccess = {
-                        navController.navigate("home") {
-                            popUpTo("home") {
-                                inclusive = false
-                            }
-                        }
+                        navController.navigate("home") { popUpTo("home") { inclusive = false } }
                     }
                 )
             }
-// =========================================================
-// MENSAJES
-// =========================================================
-            composable("messages") {
+
+            // MENSAJES
+            composable(route = "messages") {
                 ChatScreen(
-                    onBackClick = {
-                        navController.popBackStack()
-                    }
+                    token = getSessionToken(),
+                    jobId = 0,
+                    jobViewModel = viewModel(factory = JobViewModelFactory(JobsRepository())),
+                    onBackClick = { navController.popBackStack() }
                 )
             }
-// =========================================================
-// DETALLE DEL TRABAJO
-// =========================================================
+
+            composable(
+                route = "messages/{jobId}",
+                arguments = listOf(navArgument("jobId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val jobId = backStackEntry.arguments?.getInt("jobId") ?: 0
+                ChatScreen(
+                    token = getSessionToken(),
+                    jobId = jobId,
+                    jobViewModel = viewModel(factory = JobViewModelFactory(JobsRepository())),
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            // DETALLE DEL TRABAJO
             composable(
                 route = "job_detail/{jobId}",
-                arguments = listOf(
-                    navArgument("jobId") {
-                        type = NavType.IntType
-                    }
-                )
+                arguments = listOf(navArgument("jobId") { type = NavType.IntType })
             ) { backStackEntry ->
                 val jobId = backStackEntry.arguments?.getInt("jobId") ?: 0
                 JobDetailScreen(
+                    token = getSessionToken(),
                     jobId = jobId,
-                    onApplyClick = {
-                        navController.navigate("apply_job/$jobId")
-                    },
-                    onBackClick = {
-                        navController.popBackStack()
-                    }
+                    jobViewModel = viewModel(factory = JobViewModelFactory(JobsRepository())),
+                    onApplyClick = { navController.navigate("apply_job/$jobId") },
+                    onBackClick = { navController.popBackStack() }
                 )
             }
+
 // =========================================================
 // POSTULARSE
 // =========================================================
             composable(
                 route = "apply_job/{jobId}",
-                arguments = listOf(
-                    navArgument("jobId") {
-                        type = NavType.IntType
-                    }
-                )
+                arguments = listOf(navArgument("jobId") { type = NavType.IntType })
             ) { backStackEntry ->
                 val jobId = backStackEntry.arguments?.getInt("jobId") ?: 0
                 ApplyJobScreen(
+                    token = getSessionToken(),
                     jobId = jobId,
+                    jobViewModel = viewModel(
+                        factory = JobViewModelFactory(JobsRepository())
+                    ),
                     onApplySuccess = {
-                        navController.navigate("applications")
+                        // 💡 Al completarse con éxito, volvemos al home limpiando la pila
+                        navController.navigate("home") {
+                            popUpTo("home") { inclusive = true }
+                            launchSingleTop = true
+                        }
                     },
                     onBackClick = {
                         navController.popBackStack()
                     }
                 )
             }
-// =========================================================
+
 // POSTULACIONES
-// =========================================================
             composable("applications") {
                 ApplicationsScreen(
+                    token = getSessionToken(), // 💡 Aquí es donde se inyecta el token activo
                     onMatchClick = {
                         navController.navigate("match")
                     },
@@ -331,119 +265,142 @@ fun AppNavigation() {
                     }
                 )
             }
-// =========================================================
-// MATCH
-// =========================================================
+
+            // MATCH
             composable("match") {
+                val matchViewModel: com.example.chambitassystemfront.ui.screens.match.MatchViewModel = viewModel(
+                    factory = com.example.chambitassystemfront.ui.screens.match.MatchViewModelFactory(
+                        com.example.chambitassystemfront.data.repository.MatchesRepository()
+                    )
+                )
+
+                LaunchedEffect(Unit) {
+                    matchViewModel.fetchMatches(getSessionToken())
+                }
+
+                val currentMatch = matchViewModel.matches.firstOrNull()
+
                 MatchScreen(
+                    match = currentMatch,
                     onGoToChat = {
-                        navController.navigate("messages")
-                    },
-                    onGoToHome = {
-                        navController.navigate("home") {
-                            popUpTo("home") {
-                                inclusive = false
-                            }
+                        val activeJobId = currentMatch?.jobId ?: 0
+                        if (activeJobId > 0) {
+                            navController.navigate("messages/$activeJobId")
+                        } else {
+                            navController.navigate("messages")
                         }
                     },
-                    onBackClick = {
-                        navController.popBackStack()
-                    }
-                )
-            }
-// =========================================================
-// TRABAJO EN PROCESO
-// =========================================================
-            composable("job_status") {
-                JobStatusScreen(
-                    onCompleteJob = {
-                        navController.navigate("job_completed")
+                    onGoToHome = {
+                        navController.navigate("home") { popUpTo("home") { inclusive = false } }
                     },
-                    onBackClick = {
-                        navController.popBackStack()
-                    }
+                    onBackClick = { navController.popBackStack() }
                 )
             }
-// =========================================================
-// TRABAJO COMPLETADO
-// =========================================================
+
+            // TRABAJO EN PROCESO
+            composable("job_status") {
+                val jobViewModel: com.example.chambitassystemfront.ui.screens.jobs.JobViewModel = viewModel(
+                    factory = JobViewModelFactory(JobsRepository())
+                )
+                val currentJob = jobViewModel.jobs.firstOrNull()
+
+                JobStatusScreen(
+                    job = currentJob,
+                    onCompleteJob = { navController.navigate("job_completed") },
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            // TRABAJO COMPLETADO
             composable("job_completed") {
+                val jobViewModel: com.example.chambitassystemfront.ui.screens.jobs.JobViewModel = viewModel(
+                    factory = JobViewModelFactory(JobsRepository())
+                )
+                val currentJob = jobViewModel.jobs.firstOrNull()
+
                 JobCompletedScreen(
-                    onGoToReview = {
-                        navController.navigate("review")
-                    }
+                    job = currentJob,
+                    onGoToReview = { navController.navigate("review") }
                 )
             }
-// =========================================================
-// RESEÑA
-// =========================================================
+
+            // RESEÑA
             composable("review") {
                 ReviewScreen(
                     onSubmitReview = {
-                        navController.navigate("home") {
-                            popUpTo("home") {
-                                inclusive = false
-                            }
-                        }
+                        navController.navigate("home") { popUpTo("home") { inclusive = false } }
                     },
-                    onBackClick = {
-                        navController.popBackStack()
-                    }
+                    onBackClick = { navController.popBackStack() }
                 )
             }
-// =========================================================
 // PERFIL
-// =========================================================
             composable("profile") {
+                val profileViewModel: com.example.chambitassystemfront.ui.screens.profile.ProfileViewModel = viewModel(
+                    factory = com.example.chambitassystemfront.ui.screens.profile.ProfileViewModelFactory(
+                        com.example.chambitassystemfront.data.repository.UserRepository()
+                    )
+                )
+
+                LaunchedEffect(Unit) {
+                    profileViewModel.fetchProfile(getSessionToken())
+                }
+
                 ProfileScreen(
-                    onBackClick = {
-                        navController.popBackStack()
-                    },
-                    onApplicationsClick = {
-                        navController.navigate("applications")
-                    },
-                    onEditProfileClick = {
-                        navController.navigate("edit_profile")
-                    },
+                    user = profileViewModel.user,
+                    onBackClick = { navController.popBackStack() },
+                    onApplicationsClick = { navController.navigate("applications") },
+                    onEditProfileClick = { navController.navigate("edit_profile") },
                     onLogoutClick = {
                         navController.navigate("login") {
-                            popUpTo("home") {
-                                inclusive = true
-                            }
+                            popUpTo("home") { inclusive = true }
                             launchSingleTop = true
                         }
                     }
                 )
             }
-// =========================================================
-// ADMINISTRADOR
-// =========================================================
+
+// EDITAR PERFIL
+            composable("edit_profile") {
+                val profileViewModel: com.example.chambitassystemfront.ui.screens.profile.ProfileViewModel = viewModel(
+                    factory = com.example.chambitassystemfront.ui.screens.profile.ProfileViewModelFactory(
+                        com.example.chambitassystemfront.data.repository.UserRepository()
+                    )
+                )
+                val currentUser = profileViewModel.user
+
+                EditProfileScreen(
+                    initialName = currentUser?.nombre ?: "",
+                    initialPhone = currentUser?.telefono ?: "",
+                    initialDescription = currentUser?.descripcion ?: "",
+                    onSaveProfile = { name, phone, description ->
+                        profileViewModel.updateProfile(
+                            token = getSessionToken(),
+                            name = name,
+                            phone = phone,
+                            description = description,
+                            onSuccess = {
+                                navController.popBackStack()
+                            },
+                            onError = { _ ->
+                                // Opcional: mostrar error
+                            }
+                        )
+                    },
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            // ADMINISTRADOR
             composable("admin") {
                 AdminDashboardScreen(
-                    onCategoriesClick = {
-                        navController.navigate("categories")
-                    },
-                    onBackClick = {
-                        navController.popBackStack()
-                    }
+                    onCategoriesClick = { navController.navigate("categories") },
+                    onBackClick = { navController.popBackStack() }
                 )
             }
-// =========================================================
-// CATEGORÍAS
-// =========================================================
+
+            // CATEGORÍAS
             composable("categories") {
-                CategoriesScreen(
-                    onBackClick = {
-                        navController.popBackStack()
-                    }
-                )
-            }
-            composable("edit_profile") {
-                EditProfileScreen(
-                    onBackClick = {
-                        navController.popBackStack()
-                    }
-                )
+                CategoriesScreen(onBackClick = { navController.popBackStack() })
             }
         }
     }

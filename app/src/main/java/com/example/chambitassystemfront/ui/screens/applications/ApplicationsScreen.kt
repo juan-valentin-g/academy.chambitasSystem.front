@@ -19,88 +19,66 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.chambitassystemfront.data.repository.ApplicationsRepository
 
 @Composable
 fun ApplicationsScreen(
+    token: String,
     onMatchClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
+    val viewModel: ApplicationsViewModel = viewModel(
+        factory = ApplicationsViewModelFactory(ApplicationsRepository())
+    )
+
+    LaunchedEffect(Unit) {
+        viewModel.fetchApplications(token)
+    }
 
     var selectedTab by remember { mutableIntStateOf(0) }
-    var applicationStatus by remember { mutableStateOf("Nueva postulación") }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF9F7FF))
     ) {
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(
-                    start = 12.dp,
-                    end = 20.dp,
-                    top = 20.dp
-                ),
+                .padding(start = 12.dp, end = 20.dp, top = 20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
-            IconButton(
-                onClick = onBackClick
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Regresar"
-                )
+            IconButton(onClick = onBackClick) {
+                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Regresar")
             }
-
             Spacer(modifier = Modifier.width(4.dp))
-
             Text(
-                text = "Postulaciones",
-                fontSize = 28.sp,
+                text = "Match y Solicitudes",
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
             )
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        // Pestañas rediseñadas con el nuevo enfoque lógico
         TabRow(
             selectedTabIndex = selectedTab,
             containerColor = Color.Transparent
         ) {
-
             Tab(
                 selected = selectedTab == 0,
-                onClick = {
-                    selectedTab = 0
-                },
-                text = {
-                    Text("Enviadas")
-                },
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.Send,
-                        contentDescription = null
-                    )
-                }
+                onClick = { selectedTab = 0 },
+                text = { Text("Voy a realizar") },
+                icon = { Icon(imageVector = Icons.Default.Send, contentDescription = null) }
             )
 
             Tab(
                 selected = selectedTab == 1,
-                onClick = {
-                    selectedTab = 1
-                },
-                text = {
-                    Text("Recibidas")
-                },
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.Inbox,
-                        contentDescription = null
-                    )
-                }
+                onClick = { selectedTab = 1 },
+                text = { Text("Mis publicaciones") },
+                icon = { Icon(imageVector = Icons.Default.Inbox, contentDescription = null) }
             )
         }
 
@@ -109,92 +87,64 @@ fun ApplicationsScreen(
                 .fillMaxSize()
                 .padding(20.dp)
         ) {
-
             if (selectedTab == 0) {
-
-                Text(
-                    text = "Mis postulaciones",
-                    fontSize = 21.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
+                Text(text = "Trabajos a los que me postulé", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(12.dp))
 
-                ApplicationCard(
-                    title = "Limpieza de casa",
-                    subtitle = "Ciudad de México",
-                    price = "$200",
-                    status = "Pendiente",
-                    statusColor = Color(0xFFFFA000),
-                    showActions = false,
-                    onAccept = {},
-                    onReject = {},
-                    onMatchClick = onMatchClick
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                ApplicationCard(
-                    title = "Ayuda para mudanza",
-                    subtitle = "Ciudad de México",
-                    price = "$350",
-                    status = "Aceptada",
-                    statusColor = Color(0xFF2E7D32),
-                    showActions = false,
-                    onAccept = {},
-                    onReject = {},
-                    onMatchClick = onMatchClick
-                )
-
+                if (viewModel.sentApplications.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("No tienes postulaciones activas", color = Color.Gray)
+                    }
+                } else {
+                    viewModel.sentApplications.forEach { app ->
+                        ApplicationCard(
+                            title = "Trabajo #${app.jobId}",
+                            subtitle = "Estado: ${app.estado}",
+                            price = "Ver detalles",
+                            status = app.estado,
+                            statusColor = if (app.estado == "ACEPTADA") Color(0xFF2E7D32) else Color(0xFFFFA000),
+                            showActions = false,
+                            onAccept = {},
+                            onReject = {},
+                            onMatchClick = onMatchClick
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
             } else {
-
-                Text(
-                    text = "Postulaciones recibidas",
-                    fontSize = 21.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
+                Text(text = "Interesados en mis publicaciones", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(12.dp))
 
-                ApplicationCard(
-                    title = "Limpieza de casa",
-                    subtitle = "Postulante: María López",
-                    price = "$200",
-                    status = applicationStatus,
-                    statusColor = when (applicationStatus) {
-                        "Aceptada" -> Color(0xFF2E7D32)
-                        "Rechazada" -> Color(0xFFD32F2F)
-                        else -> Color(0xFF4B20C9)
-                    },
-                    showActions = true,
-                    onAccept = {
-                        applicationStatus = "Aceptada"
-                        onMatchClick()
-                    },
-
-                    onReject = {
-                        applicationStatus = "Rechazada"
-                    },
-                    onMatchClick = onMatchClick
-                )
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            OutlinedButton(
-                onClick = onBackClick,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Regresar"
-                )
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Text("Regresar")
+                if (viewModel.receivedApplications.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Nadie se ha postulado a tus ofertas aún", color = Color.Gray)
+                    }
+                } else {
+                    viewModel.receivedApplications.forEach { app ->
+                        ApplicationCard(
+                            title = "Trabajo #${app.jobId}",
+                            subtitle = "Postulante ID: ${app.workerId}",
+                            price = "Gestionar oferta",
+                            status = app.estado,
+                            statusColor = when (app.estado) {
+                                "ACEPTADA" -> Color(0xFF2E7D32)
+                                "RECHAZADA" -> Color(0xFFD32F2F)
+                                else -> Color(0xFF4B20C9)
+                            },
+                            showActions = app.estado == "PENDIENTE",
+                            onAccept = {
+                                viewModel.updateStatus(token, app.id, "ACEPTADA") {
+                                    onMatchClick()
+                                }
+                            },
+                            onReject = {
+                                viewModel.updateStatus(token, app.id, "RECHAZADA") {}
+                            },
+                            onMatchClick = onMatchClick
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
             }
         }
     }
@@ -212,161 +162,96 @@ private fun ApplicationCard(
     onReject: () -> Unit,
     onMatchClick: () -> Unit
 ) {
-
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 3.dp
-        )
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(18.dp)
         ) {
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .size(55.dp)
+                        .size(50.dp)
                         .clip(RoundedCornerShape(14.dp))
                         .background(Color(0xFFEAE2FF)),
                     contentAlignment = Alignment.Center
                 ) {
-
                     Icon(
                         imageVector = Icons.Default.Work,
                         contentDescription = "Trabajo",
                         tint = Color(0xFF4B20C9),
-                        modifier = Modifier.size(30.dp)
+                        modifier = Modifier.size(26.dp)
                     )
                 }
 
                 Spacer(modifier = Modifier.width(14.dp))
 
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-
-                    Text(
-                        text = title,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Spacer(modifier = Modifier.height(3.dp))
-
-                    Text(
-                        text = subtitle,
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
-
-                    Spacer(modifier = Modifier.height(3.dp))
-
-                    Text(
-                        text = "💰 $price",
-                        fontSize = 14.sp
-                    )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = title, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(text = subtitle, fontSize = 13.sp, color = Color.Gray)
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(text = price, fontSize = 13.sp, color = Color(0xFF4B20C9), fontWeight = FontWeight.SemiBold)
                 }
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    imageVector = if (
-                        status == "Aceptada"
-                    ) {
-                        Icons.Default.CheckCircle
-                    } else {
-                        Icons.Default.Work
-                    },
+                    imageVector = if (status == "ACEPTADA") Icons.Default.CheckCircle else Icons.Default.Work,
                     contentDescription = null,
                     tint = statusColor,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(18.dp)
                 )
-
-                Spacer(modifier = Modifier.width(7.dp))
-
-                Text(
-                    text = status,
-                    color = statusColor,
-                    fontWeight = FontWeight.Bold
-                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(text = "Estado: $status", color = statusColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             }
 
             if (showActions) {
-
-                Spacer(modifier = Modifier.height(16.dp))
-
+                Spacer(modifier = Modifier.height(14.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-
                     Button(
                         onClick = onAccept,
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(10.dp)
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
                     ) {
-
-                        Icon(
-                            imageVector = Icons.Default.CheckCircle,
-                            contentDescription = "Aceptar"
-                        )
-
-                        Spacer(modifier = Modifier.width(5.dp))
-
+                        Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text("Aceptar")
                     }
 
                     OutlinedButton(
                         onClick = onReject,
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(10.dp)
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFD32F2F))
                     ) {
-
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Rechazar"
-                        )
-
-                        Spacer(modifier = Modifier.width(5.dp))
-
+                        Icon(imageVector = Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text("Rechazar")
                     }
                 }
-
-            } else if (status == "Aceptada") {
-
-                Spacer(modifier = Modifier.height(14.dp))
-
+            } else if (status == "ACEPTADA") {
+                Spacer(modifier = Modifier.height(12.dp))
                 Button(
                     onClick = onMatchClick,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp)
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4B20C9))
                 ) {
-
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "Match"
-                    )
-
+                    Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-
-                    Text("Ver Match")
+                    Text("Ir al Chat / Match")
                 }
             }
         }

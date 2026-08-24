@@ -293,13 +293,12 @@ fun RegisterScreen(
                     name.trim().length < 3 -> { nameError = "El nombre debe tener al menos 3 caracteres."; isValid = false }
                 }
 
-                val emailRegex = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")
                 when {
                     email.isBlank() -> {
                         emailError = "Ingresa tu correo electrónico."
                         isValid = false
                     }
-                    !email.matches(emailRegex) -> {
+                    !android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches() -> {
                         emailError = "Ingresa un correo electrónico válido."
                         isValid = false
                     }

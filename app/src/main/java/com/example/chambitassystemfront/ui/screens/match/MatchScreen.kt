@@ -19,14 +19,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.chambitassystemfront.data.model.MatchResponseDto
 
 @Composable
 fun MatchScreen(
+    match: MatchResponseDto?, // 💡 Recibimos el match real
     onGoToChat: () -> Unit,
     onGoToHome: () -> Unit,
     onBackClick: () -> Unit
 ) {
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -34,26 +35,14 @@ fun MatchScreen(
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
-            IconButton(
-                onClick = onBackClick
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Regresar"
-                )
+            IconButton(onClick = onBackClick) {
+                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Regresar")
             }
-
-            Text(
-                text = "Match",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Text(text = "Match", fontSize = 24.sp, fontWeight = FontWeight.Bold)
         }
 
         Spacer(modifier = Modifier.height(40.dp))
@@ -65,7 +54,6 @@ fun MatchScreen(
                 .background(Color(0xFFEAE2FF)),
             contentAlignment = Alignment.Center
         ) {
-
             Icon(
                 imageVector = Icons.Default.CheckCircle,
                 contentDescription = "Match",
@@ -76,162 +64,73 @@ fun MatchScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text(
-            text = "¡Es un Match!",
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold
-        )
-
+        Text(text = "¡Es un Match!", fontSize = 32.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(10.dp))
-
-        Text(
-            text = "🎉 ¡Excelente!",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Medium
-        )
-
+        Text(text = "🎉 ¡Excelente!", fontSize = 18.sp, fontWeight = FontWeight.Medium)
         Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "La postulación fue aceptada.",
-            fontSize = 16.sp,
-            color = Color.Gray
-        )
+        Text(text = "La postulación fue aceptada.", fontSize = 16.sp, color = Color.Gray)
 
         Spacer(modifier = Modifier.height(28.dp))
 
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.White
-            ),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 3.dp
-            )
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
         ) {
-
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
+                modifier = Modifier.fillMaxWidth().padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
-                Text(
-                    text = "¡Ya pueden comenzar!",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
+                Text(text = "¡Ya pueden comenzar!", fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
-                        modifier = Modifier
-                            .size(55.dp)
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(Color(0xFFEAE2FF)),
+                        modifier = Modifier.size(55.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFFEAE2FF)),
                         contentAlignment = Alignment.Center
                     ) {
-
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Usuario",
-                            tint = Color(0xFF4B20C9),
-                            modifier = Modifier.size(32.dp)
-                        )
+                        Icon(imageVector = Icons.Default.Person, contentDescription = "Usuario", tint = Color(0xFF4B20C9), modifier = Modifier.size(32.dp))
                     }
-
                     Spacer(modifier = Modifier.width(12.dp))
-
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "Conectados",
-                        tint = Color(0xFF2E7D32),
-                        modifier = Modifier.size(28.dp)
-                    )
-
+                    Icon(imageVector = Icons.Default.CheckCircle, contentDescription = "Conectados", tint = Color(0xFF2E7D32), modifier = Modifier.size(28.dp))
                     Spacer(modifier = Modifier.width(12.dp))
-
                     Box(
-                        modifier = Modifier
-                            .size(55.dp)
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(Color(0xFFEAE2FF)),
+                        modifier = Modifier.size(55.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFFEAE2FF)),
                         contentAlignment = Alignment.Center
                     ) {
-
-                        Icon(
-                            imageVector = Icons.Default.Work,
-                            contentDescription = "Trabajo",
-                            tint = Color(0xFF4B20C9),
-                            modifier = Modifier.size(32.dp)
-                        )
+                        Icon(imageVector = Icons.Default.Work, contentDescription = "Trabajo", tint = Color(0xFF4B20C9), modifier = Modifier.size(32.dp))
                     }
                 }
 
                 Spacer(modifier = Modifier.height(18.dp))
 
+                // Muestra el ID del match o trabajo real de la base de datos
                 Text(
-                    text = "Limpieza de departamento",
+                    text = "Match #${match?.id ?: 0} (Trabajo #${match?.jobId ?: 0})",
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold
                 )
 
                 Spacer(modifier = Modifier.height(5.dp))
-
-                Text(
-                    text = "Ahora pueden comunicarse para coordinar el trabajo.",
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
+                Text(text = "Ahora pueden comunicarse para coordinar el trabajo.", fontSize = 14.sp, color = Color.Gray)
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Button(
-            onClick = onGoToChat,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-
-            Icon(
-                imageVector = Icons.Default.Chat,
-                contentDescription = "Chat"
-            )
-
+        Button(onClick = onGoToChat, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
+            Icon(imageVector = Icons.Default.Chat, contentDescription = "Chat")
             Spacer(modifier = Modifier.width(8.dp))
-
-            Text(
-                text = "Ir al chat",
-                fontSize = 16.sp
-            )
+            Text(text = "Ir al chat", fontSize = 16.sp)
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        OutlinedButton(
-            onClick = onGoToHome,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-
-            Icon(
-                imageVector = Icons.Default.Home,
-                contentDescription = "Inicio"
-            )
-
+        OutlinedButton(onClick = onGoToHome, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
+            Icon(imageVector = Icons.Default.Home, contentDescription = "Inicio")
             Spacer(modifier = Modifier.width(8.dp))
-
-            Text(
-                text = "Ir al inicio",
-                fontSize = 16.sp
-            )
+            Text(text = "Ir al inicio", fontSize = 16.sp)
         }
     }
 }

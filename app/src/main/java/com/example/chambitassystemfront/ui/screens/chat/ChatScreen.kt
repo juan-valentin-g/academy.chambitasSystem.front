@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.chambitassystemfront.ui.screens.jobs.JobViewModel
 
 data class ChatMessage(
     val text: String,
@@ -26,21 +27,20 @@ data class ChatMessage(
 
 @Composable
 fun ChatScreen(
+    token: String,
+    jobId: Int,
+    jobViewModel: JobViewModel,
     onBackClick: () -> Unit
 ) {
-
     var message by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf("") }
 
     var messages by remember {
         mutableStateOf(
             listOf(
                 ChatMessage(
-                    text = "¡Hola! Gracias por aceptar la chambita.",
+                    text = "¡Hola! Me interesa esta chambita.",
                     isMine = false
-                ),
-                ChatMessage(
-                    text = "¡Hola! Con gusto. Nos vemos mañana.",
-                    isMine = true
                 )
             )
         )
@@ -51,23 +51,15 @@ fun ChatScreen(
             .fillMaxSize()
             .background(Color(0xFFF9F7FF))
     ) {
-
+        // Barra Superior
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.White)
-                .padding(
-                    start = 8.dp,
-                    end = 20.dp,
-                    top = 12.dp,
-                    bottom = 12.dp
-                ),
+                .padding(horizontal = 8.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
-            IconButton(
-                onClick = onBackClick
-            ) {
+            IconButton(onClick = onBackClick) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Regresar"
@@ -76,17 +68,12 @@ fun ChatScreen(
 
             Spacer(modifier = Modifier.width(4.dp))
 
-
             Surface(
                 modifier = Modifier.size(45.dp),
                 shape = RoundedCornerShape(14.dp),
                 color = Color(0xFFEAE2FF)
             ) {
-
-                Box(
-                    contentAlignment = Alignment.Center
-                ) {
-
+                Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = "Usuario",
@@ -98,18 +85,14 @@ fun ChatScreen(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "María López",
+                    text = "Postulación a Trabajo",
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold
                 )
-
                 Text(
-                    text = "Limpieza de departamento",
+                    text = "ID de chambita: #$jobId",
                     fontSize = 12.sp,
                     color = Color.Gray
                 )
@@ -122,20 +105,16 @@ fun ChatScreen(
             )
         }
 
+        // Lista de mensajes
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(
-                top = 16.dp,
-                bottom = 16.dp
-            ),
+            contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-
             items(messages) { chatMessage ->
-
                 MessageBubble(
                     message = chatMessage.text,
                     isMine = chatMessage.isMine
@@ -143,27 +122,34 @@ fun ChatScreen(
             }
         }
 
+        if (errorMessage.isNotEmpty()) {
+            Text(
+                text = errorMessage,
+                color = Color(0xFFD32F2F),
+                fontSize = 13.sp,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+            )
+        }
+
+        // Barra inferior de escritura
         Surface(
             modifier = Modifier.fillMaxWidth(),
             color = Color.White,
             shadowElevation = 4.dp
         ) {
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
                 OutlinedTextField(
                     value = message,
                     onValueChange = {
                         message = it
+                        errorMessage = ""
                     },
-                    placeholder = {
-                        Text("Escribe un mensaje...")
-                    },
+                    placeholder = { Text("Escribe tu mensaje...") },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(20.dp),
                     singleLine = true
@@ -173,22 +159,37 @@ fun ChatScreen(
 
                 FloatingActionButton(
                     onClick = {
-
                         if (message.isNotBlank()) {
+                            val textoAEnviar = message
 
+                            // Añadimos visualmente el mensaje de forma instantánea
                             messages = messages + ChatMessage(
-                                text = message,
+                                text = textoAEnviar,
                                 isMine = true
                             )
-
                             message = ""
+
+                            // Nota: Si aún no creas applyToJob en tu ViewModel,
+                            // puedes descomentar esto cuando lo añadas:
+                            /*
+                            jobViewModel.applyToJob(
+                                token = token,
+                                jobId = jobId,
+                                mensaje = textoAEnviar,
+                                onSuccess = {
+                                    // Éxito al postularse
+                                },
+                                onError = { errorMsg: String ->
+                                    errorMessage = errorMsg
+                                }
+                            )
+                            */
                         }
                     },
                     containerColor = Color(0xFF4B20C9),
                     contentColor = Color.White,
                     modifier = Modifier.size(52.dp)
                 ) {
-
                     Icon(
                         imageVector = Icons.Default.Send,
                         contentDescription = "Enviar"
@@ -199,59 +200,30 @@ fun ChatScreen(
     }
 }
 
-
 @Composable
 private fun MessageBubble(
     message: String,
     isMine: Boolean
 ) {
-
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = if (isMine) {
-            Arrangement.End
-        } else {
-            Arrangement.Start
-        }
+        horizontalArrangement = if (isMine) Arrangement.End else Arrangement.Start
     ) {
-
         Surface(
-            color = if (isMine) {
-                Color(0xFF4B20C9)
-            } else {
-                Color.White
-            },
+            color = if (isMine) Color(0xFF4B20C9) else Color.White,
             shape = if (isMine) {
-                RoundedCornerShape(
-                    topStart = 18.dp,
-                    topEnd = 18.dp,
-                    bottomStart = 18.dp,
-                    bottomEnd = 4.dp
-                )
+                RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp, bottomStart = 18.dp, bottomEnd = 4.dp)
             } else {
-                RoundedCornerShape(
-                    topStart = 18.dp,
-                    topEnd = 18.dp,
-                    bottomStart = 4.dp,
-                    bottomEnd = 18.dp
-                )
+                RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp, bottomStart = 4.dp, bottomEnd = 18.dp)
             },
             shadowElevation = 2.dp
         ) {
-
             Text(
                 text = message,
-                color = if (isMine) {
-                    Color.White
-                } else {
-                    Color.DarkGray
-                },
+                color = if (isMine) Color.White else Color.DarkGray,
                 modifier = Modifier
                     .widthIn(max = 280.dp)
-                    .padding(
-                        horizontal = 16.dp,
-                        vertical = 12.dp
-                    ),
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
                 fontSize = 15.sp
             )
         }

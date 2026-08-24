@@ -7,6 +7,7 @@ data class LoginRequestDto(
     @SerializedName("password") val password: String
 )
 
+
 // Unificamos la respuesta del login para que use exactamente "accessToken" como manda NestJS
 data class LoginResponseDto(
     @SerializedName("accessToken") val accessToken: String,
@@ -30,4 +31,6 @@ data class UserDto(
     @SerializedName("foto") val foto: String?,
     @SerializedName("createdAt") val createdAt: String,
     @SerializedName("updatedAt") val updatedAt: String
+
+
 )

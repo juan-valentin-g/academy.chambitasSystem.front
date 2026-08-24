@@ -2,9 +2,8 @@ package com.example.chambitassystemfront.data.model
 
 import com.google.gson.annotations.SerializedName
 
-// DTO para postular a una vacante (POST /applications)
+// DTO para postular a una vacante (POST /applications) -> Se eliminó jobId porque va en la URL
 data class CreateApplicationDto(
-    @SerializedName("job_id") val jobId: Int,
     @SerializedName("mensaje") val mensaje: String? = null
 )
 

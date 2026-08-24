@@ -17,60 +17,35 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.chambitassystemfront.data.model.JobResponseDto
 
 @Composable
 fun JobStatusScreen(
+    job: JobResponseDto?, // Recibe el objeto real del trabajo
     onCompleteJob: () -> Unit,
     onBackClick: () -> Unit
 ) {
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF9F7FF))
     ) {
-
+        // Barra Superior
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.White)
-                .padding(
-                    start = 8.dp,
-                    end = 20.dp,
-                    top = 12.dp,
-                    bottom = 12.dp
-                ),
+                .padding(start = 8.dp, end = 20.dp, top = 12.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
-            IconButton(
-                onClick = onBackClick
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Regresar"
-                )
+            IconButton(onClick = onBackClick) {
+                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Regresar")
             }
-
             Spacer(modifier = Modifier.width(4.dp))
-
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-
-                Text(
-                    text = "Trabajo en proceso",
-                    fontSize = 21.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Text(
-                    text = "Gestiona el estado de tu chambita",
-                    fontSize = 12.sp,
-                    color = Color.Gray
-                )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = "Trabajo en proceso", fontSize = 21.sp, fontWeight = FontWeight.Bold)
+                Text(text = "Gestiona el estado de tu chambita", fontSize = 12.sp, color = Color.Gray)
             }
-
             Icon(
                 imageVector = Icons.Default.Work,
                 contentDescription = "Trabajo",
@@ -84,173 +59,86 @@ fun JobStatusScreen(
                 .fillMaxSize()
                 .padding(20.dp)
         ) {
-
-
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFEAE2FF)
-                )
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFEAE2FF))
             ) {
-
                 Row(
                     modifier = Modifier.padding(18.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
                         contentDescription = "En proceso",
                         tint = Color(0xFF4B20C9),
                         modifier = Modifier.size(42.dp)
                     )
-
                     Spacer(modifier = Modifier.width(14.dp))
-
                     Column {
-
-                        Text(
-                            text = "Trabajo en proceso",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        Text(
-                            text = "La chambita está actualmente activa.",
-                            fontSize = 13.sp,
-                            color = Color.DarkGray
-                        )
+                        Text(text = "Trabajo en proceso", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Text(text = "La chambita está actualmente activa.", fontSize = 13.sp, color = Color.DarkGray)
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            Text(
-                text = "Información del trabajo",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Text(text = "Información del trabajo", fontSize = 20.sp, fontWeight = FontWeight.Bold)
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Tarjeta con la información dinámica de la base de datos
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White
-                )
+                colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
-
-                Column(
-                    modifier = Modifier.padding(18.dp)
-                ) {
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-
-                        Icon(
-                            imageVector = Icons.Default.Work,
-                            contentDescription = "Trabajo",
-                            tint = Color(0xFF4B20C9)
-                        )
-
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(imageVector = Icons.Default.Work, contentDescription = "Trabajo", tint = Color(0xFF4B20C9))
                         Spacer(modifier = Modifier.width(10.dp))
-
                         Text(
-                            text = "Limpieza de departamento",
+                            text = job?.titulo ?: "Cargando título...",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
-
                     HorizontalDivider()
-
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Trabajador",
-                            tint = Color(0xFF4B20C9)
-                        )
-
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(imageVector = Icons.Default.Person, contentDescription = "Propietario", tint = Color(0xFF4B20C9))
                         Spacer(modifier = Modifier.width(10.dp))
-
                         Column {
-
-                            Text(
-                                text = "Trabajador",
-                                fontSize = 12.sp,
-                                color = Color.Gray
-                            )
-
-                            Text(
-                                text = "Juan Pérez",
-                                fontWeight = FontWeight.Medium
-                            )
+                            Text(text = "ID del Trabajo", fontSize = 12.sp, color = Color.Gray)
+                            // Corregido para usar el ID del trabajo de forma segura
+                            Text(text = "#${job?.id ?: 0}", fontWeight = FontWeight.Medium)
                         }
                     }
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = "Ubicación",
-                            tint = Color(0xFF4B20C9)
-                        )
-
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(imageVector = Icons.Default.LocationOn, contentDescription = "Ubicación", tint = Color(0xFF4B20C9))
                         Spacer(modifier = Modifier.width(10.dp))
-
                         Column {
-
-                            Text(
-                                text = "Ubicación",
-                                fontSize = 12.sp,
-                                color = Color.Gray
-                            )
-
-                            Text(
-                                text = "Ciudad de México",
-                                fontWeight = FontWeight.Medium
-                            )
+                            Text(text = "Ubicación", fontSize = 12.sp, color = Color.Gray)
+                            Text(text = job?.ubicacion ?: "No especificada", fontWeight = FontWeight.Medium)
                         }
                     }
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-
-                        Text(
-                            text = "💰",
-                            fontSize = 20.sp
-                        )
-
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = "💰", fontSize = 20.sp)
                         Spacer(modifier = Modifier.width(10.dp))
-
                         Column {
-
+                            Text(text = "Presupuesto", fontSize = 12.sp, color = Color.Gray)
                             Text(
-                                text = "Presupuesto",
-                                fontSize = 12.sp,
-                                color = Color.Gray
-                            )
-
-                            Text(
-                                text = "$200",
+                                text = "$${job?.presupuesto ?: 0.0}",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 17.sp
                             )
@@ -261,57 +149,30 @@ fun JobStatusScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text(
-                text = "Progreso",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Text(text = "Progreso", fontSize = 20.sp, fontWeight = FontWeight.Bold)
 
             Spacer(modifier = Modifier.height(12.dp))
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White
-                )
+                colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
-
-                Column(
-                    modifier = Modifier.padding(18.dp)
-                ) {
-
+                Column(modifier = Modifier.padding(18.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-
-                        Text(
-                            text = "Trabajo iniciado",
-                            fontSize = 13.sp
-                        )
-
-                        Text(
-                            text = "En proceso",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF4B20C9)
-                        )
-
-                        Text(
-                            text = "Completado",
-                            fontSize = 13.sp,
-                            color = Color.Gray
-                        )
+                        Text(text = "Trabajo iniciado", fontSize = 13.sp)
+                        Text(text = "En proceso", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF4B20C9))
+                        Text(text = "Completado", fontSize = 13.sp, color = Color.Gray)
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
 
                     LinearProgressIndicator(
                         progress = { 0.6f },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(8.dp),
+                        modifier = Modifier.fillMaxWidth().height(8.dp),
                         color = Color(0xFF4B20C9),
                         trackColor = Color(0xFFE5E0F0)
                     )
@@ -322,26 +183,13 @@ fun JobStatusScreen(
 
             Button(
                 onClick = onCompleteJob,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(54.dp),
+                modifier = Modifier.fillMaxWidth().height(54.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF4B20C9)
-                )
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4B20C9))
             ) {
-
-                Icon(
-                    imageVector = Icons.Default.CheckCircle,
-                    contentDescription = "Completar"
-                )
-
+                Icon(imageVector = Icons.Default.CheckCircle, contentDescription = "Completar")
                 Spacer(modifier = Modifier.width(8.dp))
-
-                Text(
-                    text = "Marcar como completado",
-                    fontSize = 16.sp
-                )
+                Text(text = "Marcar como completado", fontSize = 16.sp)
             }
 
             Spacer(modifier = Modifier.height(10.dp))

@@ -6,18 +6,17 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
+
+
 object ApiClient {
-    // Usa tu URL activa (Pinggy o local, asegúrate de que sea la misma para todo)
-    private const val BASE_URL = " https://obfem-2806-10ae-10-166e-d73-3bff-3bef-3603.run.pinggy-free.link" // O tu enlace de Pinggy si estás usándolo en físico
+    private const val BASE_URL = "https://thikl-189-129-42-124.run.pinggy-free.link"
 
     var userToken: String? = null
 
-    // Interceptor para los logs de red (para ver las peticiones en el Logcat de Android Studio)
     private val logger = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
-    // Cliente HTTP unificado con el interceptor de autenticación y logs
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(logger)
         .addInterceptor { chain ->
@@ -50,4 +49,6 @@ object ApiClient {
     val jobsApiService: JobsApiService by lazy { retrofit.create(JobsApiService::class.java) }
     val categoryApiService: CategoryApiService by lazy { retrofit.create(CategoryApiService::class.java) }
     val matchesApiService: MatchesApiService by lazy { retrofit.create(MatchesApiService::class.java) }
+    val applicationsApiService: ApplicationsApiService by lazy { retrofit.create(ApplicationsApiService::class.java) }
+    val usersApiService: UsersApiService by lazy { retrofit.create(UsersApiService::class.java) }
 }

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.*
@@ -16,12 +15,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.chambitassystemfront.data.model.JobResponseDto
 
 @Composable
 fun JobCompletedScreen(
+    job: JobResponseDto?, // 💡 Recibimos los datos reales
     onGoToReview: () -> Unit
 ) {
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -29,22 +29,17 @@ fun JobCompletedScreen(
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Spacer(modifier = Modifier.height(45.dp))
 
         Card(
             modifier = Modifier.size(110.dp),
             shape = RoundedCornerShape(55.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color(0xFFE4F7EA)
-            )
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFE4F7EA))
         ) {
-
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
                     contentDescription = "Trabajo completado",
@@ -56,11 +51,7 @@ fun JobCompletedScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text(
-            text = "¡Trabajo completado!",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold
-        )
+        Text(text = "¡Trabajo completado!", fontSize = 28.sp, fontWeight = FontWeight.Bold)
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -76,103 +67,57 @@ fun JobCompletedScreen(
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.White
-            )
+            colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
-
-            Column(
-                modifier = Modifier.padding(20.dp)
-            ) {
-
-                Text(
-                    text = "Resumen",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
+            Column(modifier = Modifier.padding(20.dp)) {
+                Text(text = "Resumen", fontSize = 20.sp, fontWeight = FontWeight.Bold)
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.Work,
                         contentDescription = "Trabajo",
                         tint = Color(0xFF4B20C9),
                         modifier = Modifier.size(28.dp)
                     )
-
                     Spacer(modifier = Modifier.width(12.dp))
-
                     Column {
-
                         Text(
-                            text = "Limpieza de departamento",
+                            text = job?.titulo ?: "Trabajo finalizado",
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )
-
-                        Text(
-                            text = "Trabajo finalizado",
-                            fontSize = 13.sp,
-                            color = Color.Gray
-                        )
+                        Text(text = "Trabajo finalizado con éxito", fontSize = 13.sp, color = Color.Gray)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(18.dp))
-
                 HorizontalDivider()
-
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-
                     Column {
-
-                        Text(
-                            text = "Estado",
-                            fontSize = 12.sp,
-                            color = Color.Gray
-                        )
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-
+                        Text(text = "Estado", fontSize = 12.sp, color = Color.Gray)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 imageVector = Icons.Default.CheckCircle,
                                 contentDescription = null,
                                 tint = Color(0xFF2E9B57),
                                 modifier = Modifier.size(18.dp)
                             )
-
                             Spacer(modifier = Modifier.width(5.dp))
-
-                            Text(
-                                text = "Completado",
-                                fontWeight = FontWeight.Bold
-                            )
+                            Text(text = "Completado", fontWeight = FontWeight.Bold)
                         }
                     }
 
-                    Column(
-                        horizontalAlignment = Alignment.End
-                    ) {
-
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(text = "Presupuesto", fontSize = 12.sp, color = Color.Gray)
                         Text(
-                            text = "Presupuesto",
-                            fontSize = 12.sp,
-                            color = Color.Gray
-                        )
-
-                        Text(
-                            text = "$200",
+                            text = "$${job?.presupuesto ?: 0.0}",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -186,38 +131,22 @@ fun JobCompletedScreen(
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color(0xFFEAE2FF)
-            )
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFEAE2FF))
         ) {
-
             Column(
                 modifier = Modifier.padding(18.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
                 Icon(
                     imageVector = Icons.Default.Star,
                     contentDescription = "Calificar",
                     tint = Color(0xFFFFB300),
                     modifier = Modifier.size(40.dp)
                 )
-
                 Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "¿Cómo fue tu experiencia?",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
+                Text(text = "¿Cómo fue tu experiencia?", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(5.dp))
-
-                Text(
-                    text = "Ayuda a otros usuarios calificando esta chambita.",
-                    fontSize = 13.sp,
-                    color = Color.DarkGray
-                )
+                Text(text = "Ayuda a otros usuarios calificando esta chambita.", fontSize = 13.sp, color = Color.DarkGray)
             }
         }
 
@@ -225,34 +154,17 @@ fun JobCompletedScreen(
 
         Button(
             onClick = onGoToReview,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(54.dp),
+            modifier = Modifier.fillMaxWidth().height(54.dp),
             shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF4B20C9)
-            )
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4B20C9))
         ) {
-
-            Icon(
-                imageVector = Icons.Default.Star,
-                contentDescription = null
-            )
-
+            Icon(imageVector = Icons.Default.Star, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
-
-            Text(
-                text = "Calificar experiencia",
-                fontSize = 16.sp
-            )
+            Text(text = "Calificar experiencia", fontSize = 16.sp)
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Text(
-            text = "Tu opinión ayuda a mejorar Chambitas.",
-            fontSize = 12.sp,
-            color = Color.Gray
-        )
+        Text(text = "Tu opinión ayuda a mejorar Chambitas.", fontSize = 12.sp, color = Color.Gray)
     }
 }

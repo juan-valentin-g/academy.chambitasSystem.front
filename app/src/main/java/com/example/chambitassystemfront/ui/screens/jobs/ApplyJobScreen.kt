@@ -19,12 +19,14 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun ApplyJobScreen(
+    token: String,
     jobId: Int,
+    jobViewModel: JobViewModel,
     onApplySuccess: () -> Unit,
     onBackClick: () -> Unit
 ) {
-
     var message by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -37,10 +39,7 @@ fun ApplyJobScreen(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
-            IconButton(
-                onClick = onBackClick
-            ) {
+            IconButton(onClick = onBackClick) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Regresar"
@@ -68,17 +67,14 @@ fun ApplyJobScreen(
                 defaultElevation = 3.dp
             )
         ) {
-
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(20.dp)
             ) {
-
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-
                     Box(
                         modifier = Modifier
                             .size(55.dp)
@@ -86,7 +82,6 @@ fun ApplyJobScreen(
                             .background(Color(0xFFEAE2FF)),
                         contentAlignment = Alignment.Center
                     ) {
-
                         Icon(
                             imageVector = Icons.Default.Work,
                             contentDescription = "Trabajo",
@@ -98,7 +93,6 @@ fun ApplyJobScreen(
                     Spacer(modifier = Modifier.width(14.dp))
 
                     Column {
-
                         Text(
                             text = "Solicitud de trabajo",
                             fontSize = 19.sp,
@@ -129,6 +123,7 @@ fun ApplyJobScreen(
                     onValueChange = {
                         if (it.length <= 500) {
                             message = it
+                            errorMessage = ""
                         }
                     },
                     label = {
@@ -147,14 +142,28 @@ fun ApplyJobScreen(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                Text(
-                    text = "${message.length}/500",
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    fontSize = 12.sp,
-                    color = Color.Gray
-                )
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    if (errorMessage.isNotEmpty()) {
+                        Text(
+                            text = errorMessage,
+                            color = Color(0xFFD32F2F),
+                            fontSize = 12.sp
+                        )
+                    } else {
+                        Spacer(modifier = Modifier.width(1.dp))
+                    }
 
-                Spacer(modifier = Modifier.height(18.dp))
+                    Text(
+                        text = "${message.length}/500",
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
                     text = "💡 Consejo: Sé claro y menciona tu experiencia relacionada con la chambita.",
@@ -165,22 +174,44 @@ fun ApplyJobScreen(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Button(
-                    onClick = onApplySuccess,
+                    onClick = {
+                        // Llamamos a la función real del ViewModel para enviar la postulación
+                        jobViewModel.applyToJob(
+                            token = token,
+                            jobId = jobId,
+                            mensaje = message,
+                            onSuccess = {
+                                onApplySuccess()
+                            },
+                            onError = { errorMsg ->
+                                errorMessage = errorMsg
+                            }
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4B20C9))
                 ) {
+                    if (jobViewModel.isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Send,
+                            contentDescription = "Enviar",
+                            tint = Color.White
+                        )
 
-                    Icon(
-                        imageVector = Icons.Default.Send,
-                        contentDescription = "Enviar"
-                    )
+                        Spacer(modifier = Modifier.width(8.dp))
 
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Text(
-                        text = "Enviar postulación",
-                        fontSize = 16.sp
-                    )
+                        Text(
+                            text = "Enviar postulación",
+                            fontSize = 16.sp,
+                            color = Color.White
+                        )
+                    }
                 }
             }
         }
@@ -192,7 +223,6 @@ fun ApplyJobScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)
         ) {
-
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = "Cancelar"

@@ -12,46 +12,29 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun EditProfileScreen(
+    initialName: String,
+    initialPhone: String,
+    initialDescription: String,
+    onSaveProfile: (String, String, String) -> Unit, // Callback para enviar los nuevos datos
     onBackClick: () -> Unit
 ) {
-
-    var name by remember {
-        mutableStateOf("Usuario de Chambitas")
-    }
-
-    var phone by remember {
-        mutableStateOf("")
-    }
-
-    var description by remember {
-        mutableStateOf("Disponible para chambitas")
-    }
+    var name by remember { mutableStateOf(initialName) }
+    var phone by remember { mutableStateOf(initialPhone) }
+    var description by remember { mutableStateOf(initialDescription) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(20.dp)
     ) {
-
-        Row(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-
-            IconButton(
-                onClick = onBackClick
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Regresar"
-                )
+        Row(modifier = Modifier.fillMaxWidth()) {
+            IconButton(onClick = onBackClick) {
+                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Regresar")
             }
-
             Text(
                 text = "Editar perfil",
                 fontSize = 22.sp,
-                modifier = Modifier.padding(
-                    top = 12.dp
-                )
+                modifier = Modifier.padding(top = 12.dp)
             )
         }
 
@@ -59,12 +42,8 @@ fun EditProfileScreen(
 
         OutlinedTextField(
             value = name,
-            onValueChange = {
-                name = it
-            },
-            label = {
-                Text("Nombre completo")
-            },
+            onValueChange = { name = it },
+            label = { Text("Nombre completo") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             shape = RoundedCornerShape(12.dp)
@@ -74,12 +53,8 @@ fun EditProfileScreen(
 
         OutlinedTextField(
             value = phone,
-            onValueChange = {
-                phone = it
-            },
-            label = {
-                Text("Teléfono")
-            },
+            onValueChange = { phone = it },
+            label = { Text("Teléfono") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             shape = RoundedCornerShape(12.dp)
@@ -89,15 +64,9 @@ fun EditProfileScreen(
 
         OutlinedTextField(
             value = description,
-            onValueChange = {
-                description = it
-            },
-            label = {
-                Text("Descripción")
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(120.dp),
+            onValueChange = { description = it },
+            label = { Text("Descripción") },
+            modifier = Modifier.fillMaxWidth().height(120.dp),
             shape = RoundedCornerShape(12.dp)
         )
 
@@ -105,8 +74,7 @@ fun EditProfileScreen(
 
         Button(
             onClick = {
-                // Después conectaremos esto al backend
-                onBackClick()
+                onSaveProfile(name, phone, description)
             },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)
