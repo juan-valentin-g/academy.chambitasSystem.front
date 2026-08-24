@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit
 
 object ApiClient {
     // Usa tu URL activa (Pinggy o local, asegúrate de que sea la misma para todo)
-    private const val BASE_URL = "https://nguco-2806-10ae-10-166e-d73-3bff-3bef-3603.run.pinggy-free.link" // O tu enlace de Pinggy si estás usándolo en físico
+    private const val BASE_URL = " https://obfem-2806-10ae-10-166e-d73-3bff-3bef-3603.run.pinggy-free.link" // O tu enlace de Pinggy si estás usándolo en físico
 
     var userToken: String? = null
 
