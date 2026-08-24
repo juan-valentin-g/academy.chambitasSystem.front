@@ -3,8 +3,8 @@ package com.example.chambitassystemfront.data.model
 import com.google.gson.annotations.SerializedName
 
 data class LoginRequestDto(
-    @SerializedName("correo") val correo: String,
-    @SerializedName("contrasena") val contrasena: String
+    @SerializedName("email") val email: String,          // Cambiado de "correo" a "email"
+    @SerializedName("password") val password: String     // Cambiado de "contrasena" a "password"
 )
 
 data class LoginResponseDto(
@@ -13,7 +13,7 @@ data class LoginResponseDto(
 
 data class RegisterRequestDto(
     @SerializedName("nombre") val nombre: String,
-    @SerializedName("correo") val correo: String,
-    @SerializedName("contrasena") val contrasena: String,
+    @SerializedName("email") val email: String,          // Cambiado de "correo" a "email"
+    @SerializedName("password") val password: String,    // Cambiado de "contrasena" a "password"
     @SerializedName("telefono") val telefono: String? = null
 )

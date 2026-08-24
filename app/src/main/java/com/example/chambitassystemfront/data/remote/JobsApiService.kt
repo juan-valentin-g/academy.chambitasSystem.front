@@ -8,13 +8,20 @@ interface JobsApiService {
 
     @GET("jobs")
     suspend fun getJobs(
+        @Header("Authorization") token: String,
         @Query("search") search: String? = null,
         @Query("categoryId") categoryId: Int? = null
     ): List<JobResponseDto>
 
     @GET("jobs/{id}")
-    suspend fun getJobById(@Path("id") id: Int): JobResponseDto
+    suspend fun getJobById(
+        @Header("Authorization") token: String,
+        @Path("id") id: Int
+    ): JobResponseDto
 
     @POST("jobs")
-    suspend fun createJob(@Body job: CreateJobDto): JobResponseDto
+    suspend fun createJob(
+        @Header("Authorization") token: String,
+        @Body job: CreateJobDto
+    ): JobResponseDto
 }

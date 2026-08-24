@@ -293,10 +293,16 @@ fun RegisterScreen(
                     name.trim().length < 3 -> { nameError = "El nombre debe tener al menos 3 caracteres."; isValid = false }
                 }
 
-                val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")
+                val emailRegex = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")
                 when {
-                    email.isBlank() -> { emailError = "Ingresa tu correo electrónico."; isValid = false }
-                    !email.matches(emailRegex) -> { emailError = "Ingresa un correo electrónico válido."; isValid = false }
+                    email.isBlank() -> {
+                        emailError = "Ingresa tu correo electrónico."
+                        isValid = false
+                    }
+                    !email.matches(emailRegex) -> {
+                        emailError = "Ingresa un correo electrónico válido."
+                        isValid = false
+                    }
                 }
 
                 when {
@@ -321,9 +327,9 @@ fun RegisterScreen(
                             val result = authRepository.register(
                                 RegisterRequestDto(
                                     nombre = name.trim(),
-                                    correo = email.trim(),
-                                    telefono = phone.trim(),
-                                    contrasena = password
+                                    email = email.trim(),
+                                    password = password,
+                                    telefono = phone.trim()
                                 )
                             )
 

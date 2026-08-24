@@ -1,10 +1,13 @@
 package com.example.chambitassystemfront.ui.navigation
 
+import android.content.Context
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -34,20 +37,38 @@ import com.example.chambitassystemfront.ui.screens.match.MatchScreen
 import com.example.chambitassystemfront.ui.screens.profile.ProfileScreen
 import com.example.chambitassystemfront.ui.screens.profile.EditProfileScreen
 import com.example.chambitassystemfront.ui.screens.reviews.ReviewScreen
-
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.chambitassystemfront.ui.screens.home.CategoryViewModel
+import com.example.chambitassystemfront.ui.screens.jobs.JobViewModelFactory
+import com.example.chambitassystemfront.data.repository.JobsRepository
+import com.example.chambitassystemfront.data.remote.ApiClient
 
 @Composable
 fun AppNavigation() {
-
     val navController = rememberNavController()
-
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    /*
-     * La barra inferior solamente aparece
-     * en las pantallas principales del usuario.
-     */
+    val context = LocalContext.current
+    val categoryViewModel: CategoryViewModel = viewModel()
+
+    // 💡 BLOQUE NUEVO: Recupera automáticamente el token de SharedPreferences al iniciar la navegación
+    LaunchedEffect(Unit) {
+        if (ApiClient.userToken.isNullOrEmpty()) {
+            val sharedPreferences = context.getSharedPreferences("ChambitasPrefs", Context.MODE_PRIVATE)
+            val savedToken = sharedPreferences.getString("USER_TOKEN", null)
+            if (!savedToken.isNullOrEmpty()) {
+                ApiClient.userToken = savedToken
+            }
+        }
+    }
+
+    // 💡 Función para obtener el token dinámicamente en cada llamada
+    fun getSessionToken(): String {
+        val raw = ApiClient.userToken ?: ""
+        return if (raw.startsWith("Bearer ")) raw else "Bearer $raw"
+    }
+
     val routesWithBottomBar = listOf(
         "home",
         "search_jobs",
@@ -55,21 +76,15 @@ fun AppNavigation() {
         "messages",
         "profile"
     )
-
     Scaffold(
         bottomBar = {
-
             if (currentRoute in routesWithBottomBar) {
-
                 BottomNavBar(
                     currentRoute = currentRoute,
                     onNavigate = { targetRoute ->
-
                         navController.navigate(targetRoute) {
-
                             launchSingleTop = true
                             restoreState = true
-
                             popUpTo("home") {
                                 saveState = true
                             }
@@ -79,77 +94,57 @@ fun AppNavigation() {
             }
         }
     ) { innerPadding ->
-
         NavHost(
             navController = navController,
             startDestination = "welcome",
             modifier = Modifier.padding(innerPadding)
         ) {
-
-            // =========================================================
-            // BIENVENIDA
-            // =========================================================
-
+// =========================================================
+// BIENVENIDA
+// =========================================================
             composable("welcome") {
-
                 WelcomeScreen(
-
                     onLoginClick = {
                         navController.navigate("login")
                     },
-
                     onRegisterClick = {
                         navController.navigate("account_type")
                     }
                 )
             }
-
-            // =========================================================
-            // LOGIN
-            // =========================================================
-
+// =========================================================
+// LOGIN
+// =========================================================
             composable("login") {
-
                 LoginScreen(
-
                     onLoginSuccess = {
-
                         navController.navigate("home") {
-                            // Limpiamos desde welcome para asegurar una entrada limpia a home
                             popUpTo("welcome") {
                                 inclusive = true
                             }
                         }
                     },
-
                     onAdminLogin = {
-
                         navController.navigate("admin") {
-
                             popUpTo("login") {
                                 inclusive = true
                             }
                         }
                     },
-
                     onRegisterClick = {
                         navController.navigate("account_type")
                     },
-
                     onBackClick = {
                         navController.popBackStack()
                     },
-
                     onForgotPasswordClick = {
                         navController.navigate("forgot_password")
                     }
                 )
             }
-
-            // =========================================================
-            // RECUPERAR CONTRASEÑA
-            // =========================================================
-
+// =========================================================
+// RECUPERAR CONTRASEÑA
+// =========================================================
             composable("forgot_password") {
                 ForgotPasswordScreen(
                     onBackToLogin = {
@@ -157,55 +152,39 @@ fun AppNavigation() {
                     }
                 )
             }
-
-            // =========================================================
-            // TIPO DE CUENTA
-            // =========================================================
-
+// =========================================================
+// TIPO DE CUENTA
+// =========================================================
             composable("account_type") {
-
                 AccountTypeScreen(
-
                     onContinue = {
                         navController.navigate("register")
                     },
-
                     onBackClick = {
                         navController.popBackStack()
                     }
                 )
             }
-
-            // =========================================================
-            // REGISTRO
-            // =========================================================
-
+// =========================================================
+// REGISTRO
+// =========================================================
             composable("register") {
-
                 RegisterScreen(
-
                     onRegisterSuccess = {
                         navController.navigate("register_success")
                     },
-
                     onBackClick = {
                         navController.popBackStack()
                     }
                 )
             }
-
-            // =========================================================
-            // REGISTRO EXITOSO
-            // =========================================================
-
+// =========================================================
+// REGISTRO EXITOSO
+// =========================================================
             composable("register_success") {
-
                 RegisterSuccessScreen(
-
                     onContinue = {
-
                         navController.navigate("login") {
-
                             popUpTo("welcome") {
                                 inclusive = false
                             }
@@ -213,74 +192,71 @@ fun AppNavigation() {
                     }
                 )
             }
-
-            // =========================================================
-            // HOME
-            // =========================================================
-
-
+// =========================================================
+// HOME
+// =========================================================
             composable("home") {
-
                 HomeScreen(
-
+                    categoryViewModel = categoryViewModel,
+                    token = getSessionToken(),
                     onSearchClick = {
                         navController.navigate("search_jobs")
                     },
-
                     onPublishClick = {
                         navController.navigate("publish_job")
                     },
-
                     onProfileClick = {
                         navController.navigate("profile")
                     },
-
                     onChatClick = {
                         navController.navigate("messages")
                     },
-
-                    // Añadimos esta línea para que al hacer clic en "Ver trabajo"
-                    // te lleve al detalle del trabajo (ID 1) permitiendo regresar limpio con popBackStack()
-                    onViewJobClick = {
-                        navController.navigate("job_detail/1")
-                    }
+                    onViewJobClick = { jobId ->
+                        navController.navigate("job_detail/$jobId")
+                    },
+                    jobViewModel = viewModel(
+                        factory = JobViewModelFactory(
+                            JobsRepository()
+                        )
+                    )
                 )
             }
-
-            // =========================================================
-            // BUSCAR TRABAJOS
-            // =========================================================
-
+// =========================================================
+// BUSCAR TRABAJOS
+// =========================================================
             composable("search_jobs") {
-
                 SearchJobsScreen(
-
+                    categoryViewModel = categoryViewModel,
+                    jobViewModel = viewModel(
+                        factory = JobViewModelFactory(
+                            JobsRepository()
+                        )
+                    ),
+                    token = getSessionToken(),
                     onJobClick = { jobId ->
                         navController.navigate("job_detail/$jobId")
                     },
-
                     onBackClick = {
                         navController.popBackStack()
                     }
                 )
             }
-
-            // =========================================================
-            // PUBLICAR TRABAJO
-            // =========================================================
-
+// =========================================================
+// PUBLICAR TRABAJO
+// =========================================================
             composable("publish_job") {
-
                 PostaJobScreen(
-
+                    token = getSessionToken(),
+                    jobViewModel = viewModel(
+                        factory = JobViewModelFactory(
+                            JobsRepository()
+                        )
+                    ),
                     onBackClick = {
                         navController.popBackStack()
                     },
-
                     onPublishSuccess = {
-
                         navController.navigate("home") {
-
                             popUpTo("home") {
                                 inclusive = false
                             }
@@ -288,251 +264,180 @@ fun AppNavigation() {
                     }
                 )
             }
-
-            // =========================================================
-            // MENSAJES
-            // =========================================================
-
+// =========================================================
+// MENSAJES
+// =========================================================
             composable("messages") {
-
                 ChatScreen(
-
                     onBackClick = {
                         navController.popBackStack()
                     }
                 )
             }
-
-            // =========================================================
-            // DETALLE DEL TRABAJO
-            // =========================================================
-
+// =========================================================
+// DETALLE DEL TRABAJO
+// =========================================================
             composable(
                 route = "job_detail/{jobId}",
-
                 arguments = listOf(
                     navArgument("jobId") {
                         type = NavType.IntType
                     }
                 )
             ) { backStackEntry ->
-
-                val jobId =
-                    backStackEntry.arguments?.getInt("jobId") ?: 0
-
+                val jobId = backStackEntry.arguments?.getInt("jobId") ?: 0
                 JobDetailScreen(
-
                     jobId = jobId,
-
                     onApplyClick = {
                         navController.navigate("apply_job/$jobId")
                     },
-
                     onBackClick = {
                         navController.popBackStack()
                     }
                 )
             }
-
-            // =========================================================
-            // POSTULARSE
-            // =========================================================
-
+// =========================================================
+// POSTULARSE
+// =========================================================
             composable(
                 route = "apply_job/{jobId}",
-
                 arguments = listOf(
                     navArgument("jobId") {
                         type = NavType.IntType
                     }
                 )
             ) { backStackEntry ->
-
-                val jobId =
-                    backStackEntry.arguments?.getInt("jobId") ?: 0
-
+                val jobId = backStackEntry.arguments?.getInt("jobId") ?: 0
                 ApplyJobScreen(
-
                     jobId = jobId,
-
                     onApplySuccess = {
                         navController.navigate("applications")
                     },
-
                     onBackClick = {
                         navController.popBackStack()
                     }
                 )
             }
-
-            // =========================================================
-            // POSTULACIONES
-            // =========================================================
-
+// =========================================================
+// POSTULACIONES
+// =========================================================
             composable("applications") {
-
                 ApplicationsScreen(
-
                     onMatchClick = {
                         navController.navigate("match")
                     },
-
                     onBackClick = {
                         navController.popBackStack()
                     }
                 )
             }
-
-            // =========================================================
-            // MATCH
-            // =========================================================
-
+// =========================================================
+// MATCH
+// =========================================================
             composable("match") {
-
                 MatchScreen(
-
                     onGoToChat = {
                         navController.navigate("messages")
                     },
-
                     onGoToHome = {
-
                         navController.navigate("home") {
-
                             popUpTo("home") {
                                 inclusive = false
                             }
                         }
                     },
-
                     onBackClick = {
                         navController.popBackStack()
                     }
                 )
             }
-
-            // =========================================================
-            // TRABAJO EN PROCESO
-            // =========================================================
-
+// =========================================================
+// TRABAJO EN PROCESO
+// =========================================================
             composable("job_status") {
-
                 JobStatusScreen(
-
                     onCompleteJob = {
                         navController.navigate("job_completed")
                     },
-
                     onBackClick = {
                         navController.popBackStack()
                     }
                 )
             }
-
-            // =========================================================
-            // TRABAJO COMPLETADO
-            // =========================================================
-
+// =========================================================
+// TRABAJO COMPLETADO
+// =========================================================
             composable("job_completed") {
-
                 JobCompletedScreen(
-
                     onGoToReview = {
                         navController.navigate("review")
                     }
                 )
             }
-
-            // =========================================================
-            // RESEÑA
-            // =========================================================
-
+// =========================================================
+// RESEÑA
+// =========================================================
             composable("review") {
-
                 ReviewScreen(
-
                     onSubmitReview = {
-
                         navController.navigate("home") {
-
                             popUpTo("home") {
                                 inclusive = false
                             }
                         }
                     },
-
                     onBackClick = {
                         navController.popBackStack()
                     }
                 )
             }
-
-            // =========================================================
-            // PERFIL
-            // =========================================================
-
+// =========================================================
+// PERFIL
+// =========================================================
             composable("profile") {
-
                 ProfileScreen(
-
                     onBackClick = {
                         navController.popBackStack()
                     },
-
                     onApplicationsClick = {
                         navController.navigate("applications")
                     },
-
                     onEditProfileClick = {
                         navController.navigate("edit_profile")
                     },
-
                     onLogoutClick = {
-
                         navController.navigate("login") {
-
                             popUpTo("home") {
                                 inclusive = true
                             }
-
                             launchSingleTop = true
                         }
                     }
                 )
             }
-
-            // =========================================================
-            // ADMINISTRADOR
-            // =========================================================
-
+// =========================================================
+// ADMINISTRADOR
+// =========================================================
             composable("admin") {
-
                 AdminDashboardScreen(
-
                     onCategoriesClick = {
                         navController.navigate("categories")
                     },
-
                     onBackClick = {
                         navController.popBackStack()
                     }
                 )
             }
-
-            // =========================================================
-            // CATEGORÍAS
-            // =========================================================
-
+// =========================================================
+// CATEGORÍAS
+// =========================================================
             composable("categories") {
-
                 CategoriesScreen(
-
                     onBackClick = {
                         navController.popBackStack()
                     }
                 )
             }
-
             composable("edit_profile") {
                 EditProfileScreen(
                     onBackClick = {

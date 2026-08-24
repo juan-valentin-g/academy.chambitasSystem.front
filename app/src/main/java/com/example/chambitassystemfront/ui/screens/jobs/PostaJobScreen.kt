@@ -2,7 +2,9 @@ package com.example.chambitassystemfront.ui.screens.jobs
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Work
@@ -17,39 +19,35 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun PostaJobScreen(
+    token: String,
+    jobViewModel: JobViewModel,
     onBackClick: () -> Unit,
     onPublishSuccess: () -> Unit
 ) {
-
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
+    val categoryId by remember { mutableStateOf("1") } // ID de categoría por defecto
 
     var errorMessage by remember { mutableStateOf("") }
+    val scrollState = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF9F7FF))
+            .verticalScroll(scrollState)
     ) {
-
+        // Barra Superior
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.White)
-                .padding(
-                    start = 8.dp,
-                    end = 20.dp,
-                    top = 12.dp,
-                    bottom = 12.dp
-                ),
+                .padding(horizontal = 8.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
-            IconButton(
-                onClick = onBackClick
-            ) {
+            IconButton(onClick = onBackClick) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Regresar"
@@ -58,16 +56,12 @@ fun PostaJobScreen(
 
             Spacer(modifier = Modifier.width(4.dp))
 
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "Publicar trabajo",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold
                 )
-
                 Text(
                     text = "Publica una nueva chambita",
                     fontSize = 13.sp,
@@ -83,12 +77,12 @@ fun PostaJobScreen(
             )
         }
 
+        // Formulario
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(20.dp)
         ) {
-
             Text(
                 text = "Información del trabajo",
                 fontSize = 20.sp,
@@ -99,88 +93,53 @@ fun PostaJobScreen(
 
             OutlinedTextField(
                 value = title,
-                onValueChange = {
-                    title = it
-                    errorMessage = ""
-                },
-                label = {
-                    Text("Título del trabajo")
-                },
-                placeholder = {
-                    Text("Ej. Limpieza de casa")
-                },
+                onValueChange = { title = it; errorMessage = "" },
+                label = { Text("Título del trabajo") },
+                placeholder = { Text("Ej. Limpieza de casa") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                isError = errorMessage.isNotEmpty() && title.isBlank()
+                shape = RoundedCornerShape(12.dp)
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = description,
-                onValueChange = {
-                    description = it
-                    errorMessage = ""
-                },
-                label = {
-                    Text("Descripción")
-                },
-                placeholder = {
-                    Text("Describe lo que necesitas")
-                },
+                onValueChange = { description = it; errorMessage = "" },
+                label = { Text("Descripción") },
+                placeholder = { Text("Describe lo que necesitas") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(120.dp),
-                shape = RoundedCornerShape(12.dp),
-                isError = errorMessage.isNotEmpty() && description.isBlank()
+                shape = RoundedCornerShape(12.dp)
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = price,
-                onValueChange = {
-                    price = it
-                    errorMessage = ""
-                },
-                label = {
-                    Text("Presupuesto")
-                },
-                placeholder = {
-                    Text("Ej. 500")
-                },
+                onValueChange = { price = it; errorMessage = "" },
+                label = { Text("Presupuesto") },
+                placeholder = { Text("Ej. 500") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                isError = errorMessage.isNotEmpty() &&
-                        (price.isBlank() || price.toDoubleOrNull() == null)
+                shape = RoundedCornerShape(12.dp)
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = location,
-                onValueChange = {
-                    location = it
-                    errorMessage = ""
-                },
-                label = {
-                    Text("Ubicación")
-                },
-                placeholder = {
-                    Text("Ej. Ciudad de México")
-                },
+                onValueChange = { location = it; errorMessage = "" },
+                label = { Text("Ubicación") },
+                placeholder = { Text("Ej. Ciudad de México") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                isError = errorMessage.isNotEmpty() && location.isBlank()
+                shape = RoundedCornerShape(12.dp)
             )
 
             if (errorMessage.isNotEmpty()) {
-
                 Spacer(modifier = Modifier.height(10.dp))
-
                 Text(
                     text = errorMessage,
                     color = Color(0xFFD32F2F),
@@ -192,46 +151,54 @@ fun PostaJobScreen(
 
             Button(
                 onClick = {
-
                     val priceValue = price.toDoubleOrNull()
 
                     when {
-                        title.isBlank() ||
-                                description.isBlank() ||
-                                price.isBlank() ||
-                                location.isBlank() -> {
-
-                            errorMessage =
-                                "Completa todos los campos antes de publicar."
+                        title.isBlank() || description.isBlank() || price.isBlank() || location.isBlank() -> {
+                            errorMessage = "Completa todos los campos antes de publicar."
                         }
-
                         priceValue == null -> {
-
-                            errorMessage =
-                                "El presupuesto debe ser un número válido."
+                            errorMessage = "El presupuesto debe ser un número válido."
                         }
-
                         priceValue <= 0 -> {
-
-                            errorMessage =
-                                "El presupuesto debe ser mayor a 0."
+                            errorMessage = "El presupuesto debe ser mayor al 0."
                         }
-
                         else -> {
-
                             errorMessage = ""
-                            onPublishSuccess()
+                            // Llamamos a la función real del ViewModel que envía los datos al backend
+                            jobViewModel.createJob(
+                                token = token,
+                                categoryId = categoryId.toIntOrNull() ?: 1,
+                                titulo = title,
+                                descripcion = description,
+                                presupuesto = priceValue,
+                                ubicacion = location,
+                                onSuccess = {
+                                    onPublishSuccess()
+                                },
+                                onError = { errorMsg ->
+                                    errorMessage = errorMsg
+                                }
+                            )
                         }
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4B20C9))
             ) {
-
-                Text(
-                    text = "Publicar trabajo",
-                    fontSize = 16.sp
-                )
+                if (jobViewModel.isLoading) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
+                    Text(
+                        text = "Publicar trabajo",
+                        fontSize = 16.sp,
+                        color = Color.White
+                    )
+                }
             }
         }
     }

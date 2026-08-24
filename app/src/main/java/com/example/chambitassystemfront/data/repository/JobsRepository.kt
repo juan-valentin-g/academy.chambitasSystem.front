@@ -2,33 +2,25 @@ package com.example.chambitassystemfront.data.repository
 
 import com.example.chambitassystemfront.data.model.CreateJobDto
 import com.example.chambitassystemfront.data.model.JobResponseDto
-import com.example.chambitassystemfront.data.remote.JobsApiService
+import com.example.chambitassystemfront.data.remote.ApiClient
 
-class JobsRepository(private val apiService: JobsApiService) {
-
-    suspend fun getJobs(search: String? = null, categoryId: Int? = null): Result<List<JobResponseDto>> {
+class JobsRepository {
+    suspend fun getJobs(token: String): Result<List<JobResponseDto>> {
         return try {
-            val response = apiService.getJobs(search, categoryId)
+            val response = ApiClient.jobsApiService.getJobs(token)
             Result.success(response)
         } catch (e: Exception) {
+            e.printStackTrace()
             Result.failure(e)
         }
     }
 
-    suspend fun getJobById(id: Int): Result<JobResponseDto> {
+    suspend fun createJob(token: String, request: CreateJobDto): Result<JobResponseDto> {
         return try {
-            val response = apiService.getJobById(id)
+            val response = ApiClient.jobsApiService.createJob(token, request)
             Result.success(response)
         } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun createJob(job: CreateJobDto): Result<JobResponseDto> {
-        return try {
-            val response = apiService.createJob(job)
-            Result.success(response)
-        } catch (e: Exception) {
+            e.printStackTrace()
             Result.failure(e)
         }
     }

@@ -15,6 +15,7 @@ data class JobResponseDto(
     @SerializedName("created_at") val createdAt: String
 )
 
+
 // DTO para crear un nuevo trabajo (POST /jobs)
 data class CreateJobDto(
     @SerializedName("category_id") val categoryId: Int,
