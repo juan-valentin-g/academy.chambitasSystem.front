@@ -1,15 +1,19 @@
 package com.example.chambitassystemfront.ui.screens.admin
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.AdminPanelSettings
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -17,7 +21,8 @@ import androidx.compose.ui.unit.sp
 fun AdminDashboardScreen(
     onUsersClick: () -> Unit,
     onCategoriesClick: () -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onLogoutClick: () -> Unit
 ) {
 
     Column(
@@ -192,10 +197,14 @@ fun AdminDashboardScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         OutlinedButton(
-            onClick = onBackClick,
-            modifier = Modifier.fillMaxWidth()
+            onClick = onLogoutClick,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFD32F2F))
         ) {
-            Text("← Regresar")
+            Icon(imageVector = Icons.Default.Logout, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = "Cerrar sesión", fontWeight = FontWeight.Bold)
         }
     }
 }

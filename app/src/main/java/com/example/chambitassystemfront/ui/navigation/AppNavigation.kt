@@ -465,7 +465,14 @@ fun AppNavigation() {
                 AdminDashboardScreen(
                     onUsersClick = { navController.navigate("admin_users") },
                     onCategoriesClick = { navController.navigate("categories") },
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { navController.popBackStack() },
+                    onLogoutClick = {
+                        SessionManager.clearSession()
+                        navController.navigate("login") {
+                            popUpTo("home") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
                 )
             }
 
