@@ -1,13 +1,11 @@
 package com.example.chambitassystemfront.ui.navigation
 
-import android.content.Context
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -19,12 +17,15 @@ import com.example.chambitassystemfront.ui.screens.auth.ForgotPasswordScreen
 import com.example.chambitassystemfront.ui.components.BottomNavBar
 import com.example.chambitassystemfront.ui.screens.jobs.PostaJobScreen
 import com.example.chambitassystemfront.ui.screens.admin.AdminDashboardScreen
+import com.example.chambitassystemfront.ui.screens.admin.AdminUsersScreen
+import com.example.chambitassystemfront.ui.screens.admin.AdminUsersViewModel
+import com.example.chambitassystemfront.ui.screens.admin.AdminUsersViewModelFactory
 import com.example.chambitassystemfront.ui.screens.admin.CategoriesScreen
 import com.example.chambitassystemfront.ui.screens.applications.ApplicationsScreen
 import com.example.chambitassystemfront.ui.screens.applications.ApplicationsViewModel
 import com.example.chambitassystemfront.ui.screens.applications.ApplicationsViewModelFactory
 import com.example.chambitassystemfront.data.repository.ApplicationsRepository
-import com.example.chambitassystemfront.data.remote.ApiClient
+import com.example.chambitassystemfront.data.session.SessionManager
 import com.example.chambitassystemfront.ui.screens.auth.AccountTypeScreen
 import com.example.chambitassystemfront.ui.screens.auth.LoginScreen
 import com.example.chambitassystemfront.ui.screens.auth.RegisterScreen
@@ -46,6 +47,15 @@ import com.example.chambitassystemfront.ui.screens.home.CategoryViewModel
 import com.example.chambitassystemfront.ui.screens.jobs.JobViewModel
 import com.example.chambitassystemfront.ui.screens.jobs.JobViewModelFactory
 import com.example.chambitassystemfront.data.repository.JobsRepository
+import com.example.chambitassystemfront.data.repository.UserRepository
+import com.example.chambitassystemfront.data.repository.MatchesRepository
+import com.example.chambitassystemfront.data.repository.ReviewsRepository
+import com.example.chambitassystemfront.ui.screens.match.MatchViewModel
+import com.example.chambitassystemfront.ui.screens.match.MatchViewModelFactory
+import com.example.chambitassystemfront.ui.screens.profile.ProfileViewModel
+import com.example.chambitassystemfront.ui.screens.profile.ProfileViewModelFactory
+import com.example.chambitassystemfront.ui.screens.reviews.ReviewViewModel
+import com.example.chambitassystemfront.ui.screens.reviews.ReviewViewModelFactory
 
 @Composable
 fun AppNavigation() {
@@ -53,26 +63,22 @@ fun AppNavigation() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val context = LocalContext.current
     val categoryViewModel: CategoryViewModel = viewModel()
 
     // Declaramos el jobViewModel de forma global aquí para compartirlo entre pantallas
     val jobViewModel: JobViewModel = viewModel(factory = JobViewModelFactory(JobsRepository()))
-
-    LaunchedEffect(Unit) {
-        if (ApiClient.userToken.isNullOrEmpty()) {
-            val sharedPreferences = context.getSharedPreferences("ChambitasPrefs", Context.MODE_PRIVATE)
-            val savedToken = sharedPreferences.getString("USER_TOKEN", null)
-            if (!savedToken.isNullOrEmpty()) {
-                ApiClient.userToken = savedToken
-            }
-        }
-    }
-
-    fun getSessionToken(): String {
-        val raw = ApiClient.userToken ?: ""
-        return if (raw.startsWith("Bearer ")) raw else "Bearer $raw"
-    }
+    val profileViewModel: ProfileViewModel = viewModel(
+        factory = ProfileViewModelFactory(UserRepository())
+    )
+    val matchViewModel: MatchViewModel = viewModel(
+        factory = MatchViewModelFactory(MatchesRepository())
+    )
+    val reviewViewModel: ReviewViewModel = viewModel(
+        factory = ReviewViewModelFactory(ReviewsRepository())
+    )
+    val adminUsersViewModel: AdminUsersViewModel = viewModel(
+        factory = AdminUsersViewModelFactory(UserRepository())
+    )
 
     val routesWithBottomBar = listOf(
         "home",
@@ -102,7 +108,11 @@ fun AppNavigation() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = "welcome",
+            startDestination = when {
+                !SessionManager.hasActiveSession -> "welcome"
+                SessionManager.userRole == "admin" -> "admin"
+                else -> "home"
+            },
             modifier = Modifier.padding(innerPadding)
         ) {
             // BIENVENIDA
@@ -162,11 +172,7 @@ fun AppNavigation() {
             composable("home") {
                 HomeScreen(
                     categoryViewModel = categoryViewModel,
-                    token = getSessionToken(),
                     onSearchClick = { navController.navigate("search_jobs") },
-                    onPublishClick = { navController.navigate("publish_job") },
-                    onProfileClick = { navController.navigate("profile") },
-                    onChatClick = { navController.navigate("messages") },
                     onViewJobClick = { jobId -> navController.navigate("job_detail/$jobId") },
                     jobViewModel = jobViewModel
                 )
@@ -177,7 +183,6 @@ fun AppNavigation() {
                 SearchJobsScreen(
                     categoryViewModel = categoryViewModel,
                     jobViewModel = jobViewModel,
-                    token = getSessionToken(),
                     onJobClick = { jobId -> navController.navigate("job_detail/$jobId") },
                     onBackClick = { navController.popBackStack() }
                 )
@@ -186,8 +191,8 @@ fun AppNavigation() {
             // PUBLICAR TRABAJO
             composable("publish_job") {
                 PostaJobScreen(
-                    token = getSessionToken(),
                     jobViewModel = jobViewModel,
+                    categoryViewModel = categoryViewModel,
                     onBackClick = { navController.popBackStack() },
                     onPublishSuccess = {
                         navController.navigate("home") { popUpTo("home") { inclusive = false } }
@@ -198,9 +203,7 @@ fun AppNavigation() {
             // MENSAJES
             composable(route = "messages") {
                 ChatScreen(
-                    token = getSessionToken(),
                     jobId = 0,
-                    jobViewModel = jobViewModel,
                     onBackClick = { navController.popBackStack() }
                 )
             }
@@ -211,9 +214,7 @@ fun AppNavigation() {
             ) { backStackEntry ->
                 val jobId = backStackEntry.arguments?.getInt("jobId") ?: 0
                 ChatScreen(
-                    token = getSessionToken(),
                     jobId = jobId,
-                    jobViewModel = jobViewModel,
                     onBackClick = { navController.popBackStack() }
                 )
             }
@@ -225,10 +226,15 @@ fun AppNavigation() {
             ) { backStackEntry ->
                 val jobId = backStackEntry.arguments?.getInt("jobId") ?: 0
                 JobDetailScreen(
-                    token = getSessionToken(),
                     jobId = jobId,
                     jobViewModel = jobViewModel,
                     onApplyClick = { navController.navigate("apply_job/$jobId") },
+                    onDeleteSuccess = {
+                        navController.navigate("home") {
+                            popUpTo("home") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    },
                     onBackClick = { navController.popBackStack() }
                 )
             }
@@ -240,7 +246,6 @@ fun AppNavigation() {
             ) { backStackEntry ->
                 val jobId = backStackEntry.arguments?.getInt("jobId") ?: 0
                 ApplyJobScreen(
-                    token = getSessionToken(),
                     jobId = jobId,
                     jobViewModel = jobViewModel,
                     onApplySuccess = {
@@ -265,10 +270,10 @@ fun AppNavigation() {
                 ApplicationsScreen(
                     applicationsViewModel = applicationsViewModel,
                     jobViewModel = jobViewModel, // 🚀 Añade esta línea aquí para pasárselo a la pantalla
-                    token = getSessionToken(),
-                    onMatchClick = {
-                        navController.navigate("match")
+                    onMatchClick = { matchId ->
+                        navController.navigate("match/$matchId")
                     },
+                    onOpenMatchesClick = { navController.navigate("match") },
                     onBackClick = {
                         navController.popBackStack()
                     },
@@ -280,27 +285,21 @@ fun AppNavigation() {
 
 // MATCH
             composable("match") {
-                val matchViewModel: com.example.chambitassystemfront.ui.screens.match.MatchViewModel = viewModel(
-                    factory = com.example.chambitassystemfront.ui.screens.match.MatchViewModelFactory(
-                        com.example.chambitassystemfront.data.repository.MatchesRepository()
-                    )
-                )
-
                 LaunchedEffect(Unit) {
-                    matchViewModel.fetchMatches(getSessionToken())
+                    matchViewModel.fetchMatches()
                 }
 
-                val currentMatch = matchViewModel.matches.firstOrNull()
+                val currentMatch =
+                    matchViewModel.selectedMatch ?: matchViewModel.matches.firstOrNull()
 
                 MatchScreen(
                     match = currentMatch,
-                    onGoToChat = {
-                        // 🚀 Obtenemos el jobId del match real, o buscamos el primer match con ID válido de la lista
-                        val activeJobId = currentMatch?.jobId
-                            ?: matchViewModel.matches.firstOrNull { it.jobId > 0 }?.jobId
-                            ?: 1 // Valor de respaldo seguro
-
-                        navController.navigate("messages/$activeJobId")
+                    availableMatches = matchViewModel.matches,
+                    isLoading = matchViewModel.isLoading,
+                    errorMessage = matchViewModel.errorMessage,
+                    onSelectMatch = { matchViewModel.fetchMatch(it) },
+                    onOpenStatus = { matchId ->
+                        navController.navigate("job_status/$matchId")
                     },
                     onGoToHome = {
                         navController.navigate("home") { popUpTo("home") { inclusive = false } }
@@ -309,32 +308,97 @@ fun AppNavigation() {
                 )
             }
 
+            composable(
+                route = "match/{matchId}",
+                arguments = listOf(navArgument("matchId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val matchId = backStackEntry.arguments?.getInt("matchId") ?: 0
+                LaunchedEffect(matchId) {
+                    matchViewModel.fetchMatch(matchId)
+                }
+
+                MatchScreen(
+                    match = matchViewModel.selectedMatch?.takeIf { it.id == matchId },
+                    isLoading = matchViewModel.isLoading,
+                    errorMessage = matchViewModel.errorMessage,
+                    onOpenStatus = { id -> navController.navigate("job_status/$id") },
+                    onGoToHome = {
+                        navController.navigate("home") {
+                            popUpTo("home") { inclusive = false }
+                        }
+                    },
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
             // TRABAJO EN PROCESO
-            composable("job_status") {
-                val currentJob = jobViewModel.jobs.firstOrNull()
+            composable(
+                route = "job_status/{matchId}",
+                arguments = listOf(navArgument("matchId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val matchId = backStackEntry.arguments?.getInt("matchId") ?: 0
+                LaunchedEffect(matchId) {
+                    if (matchViewModel.selectedMatch?.id != matchId) {
+                        matchViewModel.fetchMatch(matchId)
+                    }
+                }
 
                 JobStatusScreen(
-                    job = currentJob,
-                    onCompleteJob = { navController.navigate("job_completed") },
+                    match = matchViewModel.selectedMatch?.takeIf { it.id == matchId },
+                    isLoading = matchViewModel.isLoading,
+                    errorMessage = matchViewModel.errorMessage,
+                    onCompleteMatch = { id ->
+                        matchViewModel.completeMatch(
+                            matchId = id,
+                            onSuccess = {
+                                navController.navigate("job_completed/$id")
+                            },
+                            onError = {}
+                        )
+                    },
+                    onReviewClick = { id -> navController.navigate("review/$id") },
                     onBackClick = { navController.popBackStack() }
                 )
             }
 
             // TRABAJO COMPLETADO
-            composable("job_completed") {
-                val currentJob = jobViewModel.jobs.firstOrNull()
+            composable(
+                route = "job_completed/{matchId}",
+                arguments = listOf(navArgument("matchId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val matchId = backStackEntry.arguments?.getInt("matchId") ?: 0
+                LaunchedEffect(matchId) {
+                    if (matchViewModel.selectedMatch?.id != matchId) {
+                        matchViewModel.fetchMatch(matchId)
+                    }
+                }
+                val currentMatch = matchViewModel.selectedMatch?.takeIf { it.id == matchId }
 
                 JobCompletedScreen(
-                    job = currentJob,
-                    onGoToReview = { navController.navigate("review") }
+                    job = currentMatch?.job,
+                    onGoToReview = { navController.navigate("review/$matchId") }
                 )
             }
 
             // RESEÑA
-            composable("review") {
+            composable(
+                route = "review/{matchId}",
+                arguments = listOf(navArgument("matchId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val matchId = backStackEntry.arguments?.getInt("matchId") ?: 0
+                LaunchedEffect(matchId) {
+                    if (matchViewModel.selectedMatch?.id != matchId) {
+                        matchViewModel.fetchMatch(matchId)
+                    }
+                }
+
                 ReviewScreen(
+                    match = matchViewModel.selectedMatch?.takeIf { it.id == matchId },
+                    reviewViewModel = reviewViewModel,
                     onSubmitReview = {
-                        navController.navigate("home") { popUpTo("home") { inclusive = false } }
+                        navController.navigate("home") {
+                            popUpTo("home") { inclusive = false }
+                        }
                     },
                     onBackClick = { navController.popBackStack() }
                 )
@@ -342,22 +406,24 @@ fun AppNavigation() {
 
             // PERFIL
             composable("profile") {
-                val profileViewModel: com.example.chambitassystemfront.ui.screens.profile.ProfileViewModel = viewModel(
-                    factory = com.example.chambitassystemfront.ui.screens.profile.ProfileViewModelFactory(
-                        com.example.chambitassystemfront.data.repository.UserRepository()
-                    )
-                )
-
                 LaunchedEffect(Unit) {
-                    profileViewModel.fetchProfile(getSessionToken())
+                    profileViewModel.fetchProfile()
+                    reviewViewModel.fetchReceivedReviews()
+                    matchViewModel.fetchMatches()
                 }
 
                 ProfileScreen(
                     user = profileViewModel.user,
+                    receivedReviews = reviewViewModel.receivedReviews,
+                    completedJobsCount = matchViewModel.matches.count {
+                        it.estado == "FINALIZADO"
+                    },
                     onBackClick = { navController.popBackStack() },
                     onApplicationsClick = { navController.navigate("applications") },
+                    onMatchesClick = { navController.navigate("match") },
                     onEditProfileClick = { navController.navigate("edit_profile") },
                     onLogoutClick = {
+                        SessionManager.clearSession()
                         navController.navigate("login") {
                             popUpTo("home") { inclusive = true }
                             launchSingleTop = true
@@ -368,11 +434,11 @@ fun AppNavigation() {
 
             // EDITAR PERFIL
             composable("edit_profile") {
-                val profileViewModel: com.example.chambitassystemfront.ui.screens.profile.ProfileViewModel = viewModel(
-                    factory = com.example.chambitassystemfront.ui.screens.profile.ProfileViewModelFactory(
-                        com.example.chambitassystemfront.data.repository.UserRepository()
-                    )
-                )
+                LaunchedEffect(Unit) {
+                    if (profileViewModel.user == null) {
+                        profileViewModel.fetchProfile()
+                    }
+                }
                 val currentUser = profileViewModel.user
 
                 EditProfileScreen(
@@ -381,7 +447,6 @@ fun AppNavigation() {
                     initialDescription = currentUser?.descripcion ?: "",
                     onSaveProfile = { name, phone, description ->
                         profileViewModel.updateProfile(
-                            token = getSessionToken(),
                             name = name,
                             phone = phone,
                             description = description,
@@ -398,14 +463,25 @@ fun AppNavigation() {
             // ADMINISTRADOR
             composable("admin") {
                 AdminDashboardScreen(
+                    onUsersClick = { navController.navigate("admin_users") },
                     onCategoriesClick = { navController.navigate("categories") },
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            composable("admin_users") {
+                AdminUsersScreen(
+                    viewModel = adminUsersViewModel,
                     onBackClick = { navController.popBackStack() }
                 )
             }
 
             // CATEGORÍAS
             composable("categories") {
-                CategoriesScreen(onBackClick = { navController.popBackStack() })
+                CategoriesScreen(
+                    categoryViewModel = categoryViewModel,
+                    onBackClick = { navController.popBackStack() }
+                )
             }
         }
     }

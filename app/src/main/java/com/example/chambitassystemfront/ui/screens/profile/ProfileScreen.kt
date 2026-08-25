@@ -11,7 +11,6 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.*
@@ -26,15 +25,25 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import com.example.chambitassystemfront.data.model.UserResponseDto
+import com.example.chambitassystemfront.data.model.ReviewResponseDto
 
 @Composable
 fun ProfileScreen(
-    user: UserResponseDto?, // 💡 Recibimos el usuario real
+    user: UserResponseDto?,
+    receivedReviews: List<ReviewResponseDto>,
+    completedJobsCount: Int,
     onBackClick: () -> Unit,
     onApplicationsClick: () -> Unit,
+    onMatchesClick: () -> Unit,
     onEditProfileClick: () -> Unit,
     onLogoutClick: () -> Unit
 ) {
+    val averageRating = if (receivedReviews.isEmpty()) {
+        "—"
+    } else {
+        String.format("%.1f", receivedReviews.map { it.calificacion }.average())
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -119,8 +128,12 @@ fun ProfileScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(imageVector = Icons.Default.Star, contentDescription = null, tint = Color(0xFFFFB300), modifier = Modifier.size(20.dp))
                         Spacer(modifier = Modifier.width(5.dp))
-                        Text(text = "4.8", fontWeight = FontWeight.Bold)
-                        Text(text = " · 24 trabajos realizados", color = Color.Gray, fontSize = 13.sp)
+                        Text(text = averageRating, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = " · ${receivedReviews.size} reseñas recibidas",
+                            color = Color.Gray,
+                            fontSize = 13.sp
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(18.dp))
@@ -144,9 +157,9 @@ fun ProfileScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                ProfileStatCard(icon = Icons.Default.Work, value = "24", label = "Trabajos", modifier = Modifier.weight(1f))
-                ProfileStatCard(icon = Icons.Default.Star, value = "4.8", label = "Calificación", modifier = Modifier.weight(1f))
-                ProfileStatCard(icon = Icons.Default.Favorite, value = "98%", label = "Respuesta", modifier = Modifier.weight(1f))
+                ProfileStatCard(icon = Icons.Default.Work, value = completedJobsCount.toString(), label = "Trabajos", modifier = Modifier.weight(1f))
+                ProfileStatCard(icon = Icons.Default.Star, value = averageRating, label = "Calificación", modifier = Modifier.weight(1f))
+                ProfileStatCard(icon = Icons.Default.Favorite, value = receivedReviews.size.toString(), label = "Reseñas", modifier = Modifier.weight(1f))
             }
 
             Spacer(modifier = Modifier.height(22.dp))
@@ -156,10 +169,7 @@ fun ProfileScreen(
 
             ProfileOption(icon = Icons.Default.List, title = "Mis postulaciones", description = "Consulta tus trabajos y postulaciones", onClick = onApplicationsClick)
             Spacer(modifier = Modifier.height(10.dp))
-            ProfileOption(icon = Icons.Default.Work, title = "Mis trabajos", description = "Consulta los trabajos realizados", onClick = {})
-            Spacer(modifier = Modifier.height(10.dp))
-            ProfileOption(icon = Icons.Default.Settings, title = "Configuración", description = "Administra tu cuenta", onClick = {})
-
+            ProfileOption(icon = Icons.Default.Work, title = "Mis matches", description = "Consulta trabajos activos y finalizados", onClick = onMatchesClick)
             Spacer(modifier = Modifier.height(20.dp))
 
             OutlinedButton(

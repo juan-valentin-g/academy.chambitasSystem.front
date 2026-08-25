@@ -1,21 +1,28 @@
 package com.example.chambitassystemfront.data.remote
 
 import com.example.chambitassystemfront.data.model.UserResponseDto
+import com.example.chambitassystemfront.data.model.UpdateUserStatusRequest
+import retrofit2.http.Path
 import retrofit2.http.Body
 import retrofit2.http.GET
-import retrofit2.http.Header
-import retrofit2.http.PUT
+import retrofit2.http.PATCH
 
 interface UsersApiService {
 
-    @GET("auth/profile") // O la ruta de tu API en NestJS para obtener el usuario autenticado
-    suspend fun getProfile(
-        @Header("Authorization") token: String
+    @GET("users")
+    suspend fun getUsers(): List<UserResponseDto>
+
+    @GET("users/profile")
+    suspend fun getProfile(): UserResponseDto
+
+    @PATCH("users/profile")
+    suspend fun updateProfile(
+        @Body request: Map<String, String?>
     ): UserResponseDto
 
-    @PUT("auth/profile") // O la ruta correspondiente para actualizar
-    suspend fun updateProfile(
-        @Header("Authorization") token: String,
-        @Body request: Map<String, String?>
+    @PATCH("users/{id}/status")
+    suspend fun updateUserStatus(
+        @Path("id") userId: Int,
+        @Body request: UpdateUserStatusRequest
     ): UserResponseDto
 }

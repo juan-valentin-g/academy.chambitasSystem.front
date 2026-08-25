@@ -1,7 +1,7 @@
 package com.example.chambitassystemfront.ui.screens.home
 
-import android.content.Context // 👈 Import necesario para SharedPreferences
 import com.example.chambitassystemfront.ui.screens.jobs.JobViewModel
+import com.example.chambitassystemfront.data.session.SessionManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -23,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext // 👈 Import para el contexto de Compose
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,23 +31,15 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun HomeScreen(
     categoryViewModel: CategoryViewModel,
-    token: String,
     onSearchClick: () -> Unit,
-    onPublishClick: () -> Unit,
-    onProfileClick: () -> Unit,
-    onChatClick: () -> Unit,
     onViewJobClick: (Int) -> Unit,
     jobViewModel: JobViewModel
 ) {
-    val context = LocalContext.current
-
     LaunchedEffect(Unit) {
-        val sharedPreferences = context.getSharedPreferences("ChambitasPrefs", Context.MODE_PRIVATE)
-        val userId = sharedPreferences.getInt("USER_ID", 0)
-
-        jobViewModel.setCurrentUserId(userId) // 👈 Seteamos el ID del usuario actual
-        categoryViewModel.fetchCategories(token)
-        jobViewModel.fetchJobs(token)
+        jobViewModel.setCurrentUserId(SessionManager.userId)
+        categoryViewModel.fetchCategories()
+        jobViewModel.fetchJobs()
+        jobViewModel.fetchMyJobs()
     }
 
     val categoriesList = categoryViewModel.categories
@@ -85,14 +76,12 @@ fun HomeScreen(
                 }
             }
 
-            IconButton(onClick = {}) {
-                Icon(
-                    imageVector = Icons.Default.Notifications,
-                    contentDescription = "Notificaciones",
-                    tint = Color(0xFF4B20C9),
-                    modifier = Modifier.size(28.dp)
-                )
-            }
+            Icon(
+                imageVector = Icons.Default.Notifications,
+                contentDescription = "Notificaciones próximamente",
+                tint = Color.Gray,
+                modifier = Modifier.size(28.dp)
+            )
         }
 
         Spacer(modifier = Modifier.height(18.dp))
@@ -168,8 +157,8 @@ fun HomeScreen(
                     for (job in jobsList.take(3)) {
                         JobCard(
                             title = job.titulo,
-                            price = "$ ${job.presupuesto}",
-                            location = job.ubicacion,
+                            price = "$ ${job.presupuesto ?: 0.0}",
+                            location = job.ubicacion ?: "No especificada",
                             onClick = { onViewJobClick(job.id) }
                         )
                     }

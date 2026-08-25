@@ -1,31 +1,35 @@
 package com.example.chambitassystemfront.data.repository
 
 import com.example.chambitassystemfront.data.model.UserResponseDto
+import com.example.chambitassystemfront.data.model.UpdateUserStatusRequest
 import com.example.chambitassystemfront.data.remote.ApiClient
+import com.example.chambitassystemfront.data.remote.apiCall
 
 class UserRepository {
-    suspend fun getProfile(token: String): Result<UserResponseDto> {
-        return try {
-            val response = ApiClient.usersApiService.getProfile(token)
-            Result.success(response)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Result.failure(e)
-        }
+    suspend fun getUsers(): Result<List<UserResponseDto>> = apiCall {
+        ApiClient.usersApiService.getUsers()
     }
 
-    suspend fun updateProfile(token: String, name: String, phone: String, description: String): Result<UserResponseDto> {
-        return try {
+    suspend fun getProfile(): Result<UserResponseDto> = apiCall {
+        ApiClient.usersApiService.getProfile()
+    }
+
+    suspend fun updateProfile(name: String, phone: String, description: String): Result<UserResponseDto> = apiCall {
             val body = mapOf(
                 "nombre" to name,
                 "telefono" to phone,
                 "descripcion" to description
             )
-            val response = ApiClient.usersApiService.updateProfile(token, body)
-            Result.success(response)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Result.failure(e)
-        }
+            ApiClient.usersApiService.updateProfile(body)
+    }
+
+    suspend fun updateUserStatus(
+        userId: Int,
+        active: Boolean
+    ): Result<UserResponseDto> = apiCall {
+        ApiClient.usersApiService.updateUserStatus(
+            userId,
+            UpdateUserStatusRequest(active)
+        )
     }
 }

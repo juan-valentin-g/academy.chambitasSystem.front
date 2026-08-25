@@ -29,6 +29,7 @@ data class UserDto(
     @SerializedName("rol") val rol: String,
     @SerializedName("descripcion") val descripcion: String?,
     @SerializedName("foto") val foto: String?,
+    @SerializedName("activo") val activo: Boolean = true,
     @SerializedName("createdAt") val createdAt: String,
     @SerializedName("updatedAt") val updatedAt: String
 

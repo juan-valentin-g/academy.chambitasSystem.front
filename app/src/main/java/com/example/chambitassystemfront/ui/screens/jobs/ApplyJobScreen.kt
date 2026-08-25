@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun ApplyJobScreen(
-    token: String,
     jobId: Int,
     jobViewModel: JobViewModel,
     onApplySuccess: () -> Unit,
@@ -177,7 +176,6 @@ fun ApplyJobScreen(
                     onClick = {
                         // Llamamos a la función real del ViewModel para enviar la postulación
                         jobViewModel.applyToJob(
-                            token = token,
                             jobId = jobId,
                             mensaje = message,
                             onSuccess = {

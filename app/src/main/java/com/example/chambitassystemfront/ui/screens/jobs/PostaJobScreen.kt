@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Work
@@ -16,11 +18,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.chambitassystemfront.ui.screens.home.CategoryViewModel
 
 @Composable
 fun PostaJobScreen(
-    token: String,
     jobViewModel: JobViewModel,
+    categoryViewModel: CategoryViewModel,
     onBackClick: () -> Unit,
     onPublishSuccess: () -> Unit
 ) {
@@ -28,10 +31,14 @@ fun PostaJobScreen(
     var description by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
-    val categoryId by remember { mutableStateOf("1") } // ID de categoría por defecto
+    var categoryId by remember { mutableStateOf<Int?>(null) }
 
     var errorMessage by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
+
+    LaunchedEffect(Unit) {
+        categoryViewModel.fetchCategories()
+    }
 
     Column(
         modifier = Modifier
@@ -116,6 +123,37 @@ fun PostaJobScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            Text(
+                text = "Categoría",
+                fontWeight = FontWeight.Medium
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (categoryViewModel.isLoading && categoryViewModel.categories.isEmpty()) {
+                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+            } else if (categoryViewModel.categories.isEmpty()) {
+                Text(
+                    text = "No hay categorías disponibles.",
+                    color = Color(0xFFD32F2F)
+                )
+            } else {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(categoryViewModel.categories, key = { it.id }) { category ->
+                        FilterChip(
+                            selected = categoryId == category.id,
+                            onClick = {
+                                categoryId = category.id
+                                errorMessage = ""
+                            },
+                            label = { Text(category.nombre) }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
             OutlinedTextField(
                 value = price,
                 onValueChange = { price = it; errorMessage = "" },
@@ -157,6 +195,9 @@ fun PostaJobScreen(
                         title.isBlank() || description.isBlank() || price.isBlank() || location.isBlank() -> {
                             errorMessage = "Completa todos los campos antes de publicar."
                         }
+                        categoryId == null -> {
+                            errorMessage = "Selecciona una categoría."
+                        }
                         priceValue == null -> {
                             errorMessage = "El presupuesto debe ser un número válido."
                         }
@@ -167,8 +208,7 @@ fun PostaJobScreen(
                             errorMessage = ""
                             // Llamamos a la función real del ViewModel que envía los datos al backend
                             jobViewModel.createJob(
-                                token = token,
-                                categoryId = categoryId.toIntOrNull() ?: 1,
+                                categoryId = categoryId!!,
                                 titulo = title,
                                 descripcion = description,
                                 presupuesto = priceValue,

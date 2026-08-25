@@ -1,5 +1,6 @@
 package com.example.chambitassystemfront.data.remote
 
+import com.example.chambitassystemfront.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -8,34 +9,30 @@ import java.util.concurrent.TimeUnit
 
 object ApiClient {
 
-    private const val BASE_URL = "http://192.168.1.77:3000/"
-
-    var userToken: String? = null
+    private val baseUrl: String
+        get() = BuildConfig.API_BASE_URL.trim().let { configuredUrl ->
+            if (configuredUrl.endsWith('/')) configuredUrl else "$configuredUrl/"
+        }
 
     private val logger = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY
+        redactHeader("Authorization")
+        level = if (BuildConfig.DEBUG) {
+            HttpLoggingInterceptor.Level.BASIC
+        } else {
+            HttpLoggingInterceptor.Level.NONE
+        }
     }
 
     private val okHttpClient = OkHttpClient.Builder()
+        .addInterceptor(AuthInterceptor())
         .addInterceptor(logger)
-        .addInterceptor { chain ->
-            val originalRequest = chain.request()
-            val requestBuilder = originalRequest.newBuilder()
-
-            userToken?.let { token ->
-                val cleanToken = if (token.startsWith("Bearer ")) token else "Bearer $token"
-                requestBuilder.header("Authorization", cleanToken)
-            }
-
-            chain.proceed(requestBuilder.build())
-        }
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
 
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(baseUrl)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -47,4 +44,5 @@ object ApiClient {
     val matchesApiService: MatchesApiService by lazy { retrofit.create(MatchesApiService::class.java) }
     val applicationsApiService: ApplicationsApiService by lazy { retrofit.create(ApplicationsApiService::class.java) }
     val usersApiService: UsersApiService by lazy { retrofit.create(UsersApiService::class.java) }
+    val reviewsApiService: ReviewsApiService by lazy { retrofit.create(ReviewsApiService::class.java) }
 }

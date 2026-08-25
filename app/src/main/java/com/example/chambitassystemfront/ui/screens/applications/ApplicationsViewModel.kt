@@ -7,10 +7,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.chambitassystemfront.data.model.ApplicationResponseDto
+import com.example.chambitassystemfront.data.model.MatchResponseDto
 import com.example.chambitassystemfront.data.repository.ApplicationsRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 
-class ApplicationsViewModel(private val repository: ApplicationsRepository) : ViewModel() {
+class ApplicationsViewModel(
+    private val repository: ApplicationsRepository
+) : ViewModel() {
 
     var sentApplications by mutableStateOf<List<ApplicationResponseDto>>(emptyList())
         private set
@@ -21,74 +26,127 @@ class ApplicationsViewModel(private val repository: ApplicationsRepository) : Vi
     var isLoading by mutableStateOf(false)
         private set
 
-    // Cargar aplicaciones asociadas a un trabajo específico
-    fun fetchApplicationsByJob(token: String, jobId: Int) {
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
+
+    fun fetchSentApplications(
+        onLoaded: (List<ApplicationResponseDto>) -> Unit = {}
+    ) {
         viewModelScope.launch {
             isLoading = true
-            val authHeader = if (token.startsWith("Bearer ")) token else "Bearer $token"
-
-            repository.getApplicationsByJob(authHeader, jobId).onSuccess {
-                receivedApplications = it
-            }.onFailure {
-                it.printStackTrace()
-            }
-
+            errorMessage = null
+            repository.getMyApplications().fold(
+                onSuccess = {
+                    sentApplications = it
+                    onLoaded(it)
+                },
+                onFailure = { errorMessage = it.message }
+            )
             isLoading = false
         }
     }
 
-    // Cargar solicitudes para los trabajos creados por mí (Mis publicaciones)
-    fun fetchApplicationsForMyJobs(token: String, jobIds: List<Int>) {
+    fun fetchApplicationsByJob(jobId: Int) {
         viewModelScope.launch {
             isLoading = true
-            val authHeader = if (token.startsWith("Bearer ")) token else "Bearer $token"
-            val allReceived = mutableListOf<ApplicationResponseDto>()
+            errorMessage = null
+            repository.getApplicationsByJob(jobId).fold(
+                onSuccess = { applications ->
+                    receivedApplications =
+                        receivedApplications.filterNot { it.jobId == jobId } + applications
+                },
+                onFailure = { errorMessage = it.message }
+            )
+            isLoading = false
+        }
+    }
 
-            for (id in jobIds) {
-                repository.getApplicationsByJob(authHeader, id).onSuccess { list ->
-                    allReceived.addAll(list)
-                }.onFailure {
-                    it.printStackTrace()
+    fun fetchApplicationsForMyJobs(jobIds: List<Int>) {
+        viewModelScope.launch {
+            isLoading = true
+            errorMessage = null
+
+            if (jobIds.isEmpty()) {
+                receivedApplications = emptyList()
+                isLoading = false
+                return@launch
+            }
+
+            val results = jobIds.distinct().map { jobId ->
+                async { repository.getApplicationsByJob(jobId) }
+            }.awaitAll()
+
+            val failures = results.mapNotNull { it.exceptionOrNull()?.message }
+            receivedApplications = results.flatMap { it.getOrDefault(emptyList()) }
+                .sortedByDescending { it.createdAt }
+
+            if (failures.isNotEmpty()) {
+                errorMessage = failures.first()
+            }
+            isLoading = false
+        }
+    }
+
+    fun acceptApplication(
+        application: ApplicationResponseDto,
+        onSuccess: (MatchResponseDto) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            isLoading = true
+            errorMessage = null
+            repository.acceptApplication(application.id).fold(
+                onSuccess = { match ->
+                    receivedApplications = receivedApplications.map {
+                        when {
+                            it.id == application.id -> it.copy(estado = "ACEPTADA")
+                            it.jobId == application.jobId &&
+                                it.estado.equals("PENDIENTE", ignoreCase = true) ->
+                                it.copy(estado = "RECHAZADA")
+                            else -> it
+                        }
+                    }
+                    onSuccess(match)
+                },
+                onFailure = {
+                    val message = it.message ?: "No se pudo aceptar la postulación"
+                    errorMessage = message
+                    onError(message)
                 }
-            }
-            receivedApplications = allReceived
+            )
             isLoading = false
         }
     }
 
-    // 🚀 Solución definitiva para "Voy a realizar": recopila y filtra las postulaciones enviadas
-// Cargar trabajos a los que me postulé de forma limpia y directa
-    fun fetchSentApplications(token: String) {
+    fun rejectApplication(
+        application: ApplicationResponseDto,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
         viewModelScope.launch {
             isLoading = true
-            val authHeader = if (token.startsWith("Bearer ")) token else "Bearer $token"
-
-            // Como no hay ruta /applications/my en NestJS, inicializamos la lista de enviadas
-            sentApplications = emptyList()
-
+            errorMessage = null
+            repository.rejectApplication(application.id).fold(
+                onSuccess = { updated ->
+                    receivedApplications = receivedApplications.map {
+                        if (it.id == updated.id) updated else it
+                    }
+                    onSuccess()
+                },
+                onFailure = {
+                    val message = it.message ?: "No se pudo rechazar la postulación"
+                    errorMessage = message
+                    onError(message)
+                }
+            )
             isLoading = false
-        }
-    }
-
-    // Aceptar o rechazar postulación usando los endpoints PATCH reales del backend
-    fun updateStatus(token: String, appId: Int, newStatus: String, jobId: Int, onComplete: () -> Unit) {
-        viewModelScope.launch {
-            val authHeader = if (token.startsWith("Bearer ")) token else "Bearer $token"
-            val result = if (newStatus.lowercase() == "accepted" || newStatus.lowercase() == "aceptado" || newStatus.lowercase() == "pendiente") {
-                repository.acceptApplication(authHeader, appId)
-            } else {
-                repository.rejectApplication(authHeader, appId)
-            }
-
-            result.onSuccess {
-                fetchApplicationsByJob(authHeader, jobId)
-                onComplete()
-            }
         }
     }
 }
 
-class ApplicationsViewModelFactory(private val repository: ApplicationsRepository) : ViewModelProvider.Factory {
+class ApplicationsViewModelFactory(
+    private val repository: ApplicationsRepository
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ApplicationsViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")

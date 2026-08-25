@@ -1,7 +1,18 @@
 package com.example.chambitassystemfront.ui.screens.applications
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,8 +22,24 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.Work
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,42 +47,34 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.chambitassystemfront.data.model.ApplicationResponseDto
+import com.example.chambitassystemfront.data.session.SessionManager
 import com.example.chambitassystemfront.ui.screens.jobs.JobViewModel
 
 @Composable
 fun ApplicationsScreen(
     applicationsViewModel: ApplicationsViewModel,
     jobViewModel: JobViewModel,
-    token: String,
-    onMatchClick: () -> Unit,
+    onMatchClick: (Int) -> Unit,
+    onOpenMatchesClick: () -> Unit,
     onBackClick: () -> Unit,
     onJobClick: (Int) -> Unit
 ) {
+    var selectedTab by remember { mutableIntStateOf(0) }
+    var operationError by remember { mutableStateOf<String?>(null) }
+
     LaunchedEffect(Unit) {
-        token.let {
-            // 1. Descargamos los trabajos del servidor
-            jobViewModel.fetchJobs(it)
-
-            // ⚠️ IMPORTANTE: Asegúrate de pasar el ID real de tu usuario logueado (por ejemplo, 1 o el que uses en tu BD)
-            // Si ya tienes guardado el ID en tu sesión, ponlo aquí:
-            jobViewModel.setCurrentUserId(1) // Cambia 1 por el ID de tu usuario si es diferente
-
-            // 2. Esperamos un instante o evaluamos las publicaciones propias
-            val myJobIds = jobViewModel.myPublications.map { job -> job.id }
-            if (myJobIds.isNotEmpty()) {
-                applicationsViewModel.fetchApplicationsForMyJobs(it, myJobIds)
-            } else {
-                // Si por alguna razón la lista filtrada llega vacía, consultamos el trabajo 1 para probar la UI
-                applicationsViewModel.fetchApplicationsByJob(it, 1)
-            }
-
-            applicationsViewModel.fetchSentApplications(it)
+        jobViewModel.setCurrentUserId(SessionManager.userId)
+        jobViewModel.fetchMyJobs()
+        applicationsViewModel.fetchSentApplications { applications ->
+            jobViewModel.syncAppliedJobs(applications.map { it.jobId })
         }
     }
 
-    // ... resto de tu UI ...
-
-    var selectedTab by remember { mutableIntStateOf(0) }
+    val myJobIds = jobViewModel.myPublications.map { it.id }.sorted()
+    LaunchedEffect(myJobIds) {
+        applicationsViewModel.fetchApplicationsForMyJobs(myJobIds)
+    }
 
     Column(
         modifier = Modifier
@@ -69,11 +88,14 @@ fun ApplicationsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBackClick) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar")
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Regresar"
+                )
             }
             Spacer(modifier = Modifier.width(4.dp))
             Text(
-                text = "Match y Solicitudes",
+                text = "Postulaciones",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -88,84 +110,124 @@ fun ApplicationsScreen(
             Tab(
                 selected = selectedTab == 0,
                 onClick = { selectedTab = 0 },
-                text = { Text("Voy a realizar") },
-                icon = { Icon(imageVector = Icons.AutoMirrored.Filled.Send, contentDescription = null) }
+                text = { Text("Enviadas") },
+                icon = {
+                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null)
+                }
             )
-
             Tab(
                 selected = selectedTab == 1,
                 onClick = { selectedTab = 1 },
-                text = { Text("Mis publicaciones") },
-                icon = { Icon(imageVector = Icons.Default.Inbox, contentDescription = null) }
+                text = { Text("Recibidas") },
+                icon = { Icon(Icons.Default.Inbox, contentDescription = null) }
             )
         }
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(20.dp)
+        val visibleError = operationError ?: applicationsViewModel.errorMessage
+        visibleError?.let {
+            Text(
+                text = it,
+                color = Color(0xFFD32F2F),
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+            )
+        }
+
+        if (applicationsViewModel.isLoading &&
+            applicationsViewModel.sentApplications.isEmpty() &&
+            applicationsViewModel.receivedApplications.isEmpty()
         ) {
-            if (selectedTab == 0) {
-                Text(text = "Trabajos a los que me postulé", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(12.dp))
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+            return@Column
+        }
 
-                val sentApplications = applicationsViewModel.sentApplications
-
-                if (sentApplications.isEmpty()) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("No tienes postulaciones activas", color = Color.Gray)
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(sentApplications) { app ->
-                            ApplicationCard(
-                                title = "Solicitud en Trabajo #${app.jobId}",
-                                subtitle = "Estado de postulación",
-                                status = app.estado,
-                                statusColor = Color(0xFFFFA000),
-                                onCardClick = { onJobClick(app.jobId) },
-                                onAcceptClick = null
-                            )
-                        }
+        if (selectedTab == 0) {
+            ApplicationList(
+                title = "Trabajos a los que me postulé",
+                emptyMessage = "No has enviado postulaciones",
+                applications = applicationsViewModel.sentApplications,
+                jobViewModel = jobViewModel,
+                onCardClick = { application ->
+                    if (application.estado.equals("ACEPTADA", ignoreCase = true)) {
+                        onOpenMatchesClick()
+                    } else if (application.estado.equals("PENDIENTE", ignoreCase = true)) {
+                        onJobClick(application.jobId)
                     }
                 }
-            } else {
-                Text(text = "Mis publicaciones creadas", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(12.dp))
-
-                val receivedApplications = applicationsViewModel.receivedApplications
-
-                if (receivedApplications.isEmpty()) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("No has recibido solicitudes o publicaciones aún", color = Color.Gray)
+            )
+        } else {
+            ApplicationList(
+                title = "Postulaciones recibidas",
+                emptyMessage = "Tus publicaciones no tienen postulaciones",
+                applications = applicationsViewModel.receivedApplications,
+                jobViewModel = jobViewModel,
+                onCardClick = { application ->
+                    if (application.estado.equals("ACEPTADA", ignoreCase = true)) {
+                        onOpenMatchesClick()
+                    } else if (application.estado.equals("PENDIENTE", ignoreCase = true)) {
+                        onJobClick(application.jobId)
                     }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(receivedApplications) { app ->
-                            val matchingJob = jobViewModel.myPublications.find { it.id == app.jobId }
-                                ?: jobViewModel.jobs.find { it.id == app.jobId }
-                            val jobTitle = matchingJob?.titulo ?: "Trabajo #${app.jobId}"
+                },
+                onAccept = { application ->
+                    operationError = null
+                    applicationsViewModel.acceptApplication(
+                        application = application,
+                        onSuccess = { match -> onMatchClick(match.id) },
+                        onError = { operationError = it }
+                    )
+                },
+                onReject = { application ->
+                    operationError = null
+                    applicationsViewModel.rejectApplication(
+                        application = application,
+                        onSuccess = {},
+                        onError = { operationError = it }
+                    )
+                }
+            )
+        }
+    }
+}
+@Composable
+private fun ApplicationList(
+    title: String,
+    emptyMessage: String,
+    applications: List<ApplicationResponseDto>,
+    jobViewModel: JobViewModel,
+    onCardClick: (ApplicationResponseDto) -> Unit,
+    onAccept: ((ApplicationResponseDto) -> Unit)? = null,
+    onReject: ((ApplicationResponseDto) -> Unit)? = null
+) {
+    Column(modifier = Modifier.fillMaxSize().padding(20.dp)) {
+        Text(text = title, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(12.dp))
 
-                            ApplicationCard(
-                                title = jobTitle,
-                                subtitle = "Postulación ID: #${app.id} (Trabajo #${app.jobId})",
-                                status = app.estado,
-                                statusColor = if (app.estado.uppercase() == "ACEPTADA") Color(0xFF2E7D32) else Color(0xFF4B20C9),
-                                onCardClick = { onMatchClick() },
-                                onAcceptClick = {
-                                    applicationsViewModel.updateStatus(token, app.id, "accepted", app.jobId) {
-                                        onMatchClick()
-                                    }
-                                }
-                            )
-                        }
-                    }
+        if (applications.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(emptyMessage, color = Color.Gray)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(applications, key = { it.id }) { application ->
+                    val cachedJob = jobViewModel.myPublications
+                        .firstOrNull { it.id == application.jobId }
+                    ApplicationCard(
+                        title = application.job?.titulo
+                            ?: cachedJob?.titulo
+                            ?: "Trabajo #${application.jobId}",
+                        subtitle = application.applicant?.nombre
+                            ?.let { "Postulante: $it" }
+                            ?: application.mensaje
+                            ?: "Sin mensaje",
+                        application = application,
+                        onCardClick = { onCardClick(application) },
+                        onAcceptClick = onAccept?.let { { it(application) } },
+                        onRejectClick = onReject?.let { { it(application) } }
+                    )
                 }
             }
         }
@@ -176,11 +238,21 @@ fun ApplicationsScreen(
 private fun ApplicationCard(
     title: String,
     subtitle: String,
-    status: String,
-    statusColor: Color,
+    application: ApplicationResponseDto,
     onCardClick: () -> Unit,
-    onAcceptClick: (() -> Unit)?
+    onAcceptClick: (() -> Unit)?,
+    onRejectClick: (() -> Unit)?
 ) {
+    val normalizedStatus = application.estado.uppercase()
+    val statusColor = when (normalizedStatus) {
+        "ACEPTADA" -> Color(0xFF2E7D32)
+        "RECHAZADA" -> Color(0xFFD32F2F)
+        else -> Color(0xFFFFA000)
+    }
+    val canResolve = normalizedStatus == "PENDIENTE" &&
+        onAcceptClick != null &&
+        onRejectClick != null
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
@@ -188,11 +260,7 @@ private fun ApplicationCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
         onClick = onCardClick
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(18.dp)
-        ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
@@ -203,47 +271,58 @@ private fun ApplicationCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Work,
-                        contentDescription = "Trabajo",
+                        contentDescription = null,
                         tint = Color(0xFF4B20C9),
                         modifier = Modifier.size(26.dp)
                     )
                 }
-
                 Spacer(modifier = Modifier.width(14.dp))
-
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = title, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                    Text(title, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(2.dp))
-                    Text(text = subtitle, fontSize = 13.sp, color = Color.Gray)
+                    Text(subtitle, fontSize = 13.sp, color = Color.Gray)
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint = statusColor,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "Estado: ${application.estado}",
+                    color = statusColor,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+            }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = null,
-                        tint = statusColor,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = "Estado: $status", color = statusColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                }
-
-                if (onAcceptClick != null && status.uppercase() != "ACEPTADA") {
+            if (canResolve) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onRejectClick,
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(vertical = 8.dp)
+                    ) {
+                        Text("Rechazar", color = Color(0xFFD32F2F))
+                    }
                     Button(
                         onClick = onAcceptClick,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4B20C9)),
-                        shape = RoundedCornerShape(10.dp),
-                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF4B20C9)
+                        ),
+                        contentPadding = PaddingValues(vertical = 8.dp)
                     ) {
-                        Text(text = "Aceptar", fontSize = 13.sp, color = Color.White)
+                        Text("Aceptar")
                     }
                 }
             }

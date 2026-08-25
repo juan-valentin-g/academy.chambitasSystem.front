@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun AdminDashboardScreen(
+    onUsersClick: () -> Unit,
     onCategoriesClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
@@ -95,7 +96,7 @@ fun AdminDashboardScreen(
                 }
 
                 Button(
-                    onClick = {}
+                    onClick = onUsersClick
                 ) {
                     Text("Ver")
                 }
@@ -184,11 +185,7 @@ fun AdminDashboardScreen(
                     )
                 }
 
-                Button(
-                    onClick = {}
-                ) {
-                    Text("Ver")
-                }
+                Text("Sin endpoint", color = MaterialTheme.colorScheme.outline)
             }
         }
 

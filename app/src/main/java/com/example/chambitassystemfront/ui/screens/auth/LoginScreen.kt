@@ -1,6 +1,5 @@
 package com.example.chambitassystemfront.ui.screens.auth
 
-import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -8,12 +7,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.chambitassystemfront.data.model.LoginRequestDto
 import com.example.chambitassystemfront.data.remote.ApiClient
 import com.example.chambitassystemfront.data.repository.AuthRepository
+import com.example.chambitassystemfront.data.session.SessionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -30,7 +29,6 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var generalError by remember { mutableStateOf("") }
 
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
     val authRepository = remember {
@@ -111,19 +109,17 @@ fun LoginScreen(
 
                         result.fold(
                             onSuccess = { response ->
-                                ApiClient.userToken = response.accessToken
                                 val userId = response.user?.id ?: 0
+                                val userRole = response.user?.rol
 
-                                // Guardamos Token y ID de manera persistente
-                                val sharedPreferences = context.getSharedPreferences("ChambitasPrefs", Context.MODE_PRIVATE)
-                                sharedPreferences.edit()
-                                    .putString("USER_TOKEN", response.accessToken)
-                                    .putInt("USER_ID", userId)
-                                    .apply()
+                                SessionManager.saveSession(
+                                    accessToken = response.accessToken,
+                                    userId = userId,
+                                    userRole = userRole
+                                )
 
                                 withContext(Dispatchers.Main) {
-                                    val cleanEmail = email.trim().lowercase()
-                                    if (cleanEmail.contains("admin") || cleanEmail == "admin@chambitas.com") {
+                                    if (userRole == "admin") {
                                         onAdminLogin()
                                     } else {
                                         onLoginSuccess()

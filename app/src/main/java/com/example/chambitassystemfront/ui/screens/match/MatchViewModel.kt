@@ -10,9 +10,14 @@ import com.example.chambitassystemfront.data.model.MatchResponseDto
 import com.example.chambitassystemfront.data.repository.MatchesRepository
 import kotlinx.coroutines.launch
 
-class MatchViewModel(private val matchesRepository: MatchesRepository) : ViewModel() {
+class MatchViewModel(
+    private val matchesRepository: MatchesRepository
+) : ViewModel() {
 
     var matches by mutableStateOf<List<MatchResponseDto>>(emptyList())
+        private set
+
+    var selectedMatch by mutableStateOf<MatchResponseDto?>(null)
         private set
 
     var isLoading by mutableStateOf(false)
@@ -21,19 +26,53 @@ class MatchViewModel(private val matchesRepository: MatchesRepository) : ViewMod
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
-    fun fetchMatches(token: String) {
+    fun fetchMatches() {
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
-            val authHeader = if (token.startsWith("Bearer ")) token else "Bearer $token"
-
-            val result = matchesRepository.getMatches(authHeader)
-            result.fold(
+            matchesRepository.getMatches().fold(
                 onSuccess = { list ->
                     matches = list
+                    selectedMatch = list.firstOrNull()
                 },
-                onFailure = { error ->
-                    errorMessage = error.message
+                onFailure = { errorMessage = it.message }
+            )
+            isLoading = false
+        }
+    }
+
+    fun fetchMatch(matchId: Int) {
+        viewModelScope.launch {
+            isLoading = true
+            errorMessage = null
+            matchesRepository.getMatchById(matchId).fold(
+                onSuccess = { selectedMatch = it },
+                onFailure = { errorMessage = it.message }
+            )
+            isLoading = false
+        }
+    }
+
+    fun completeMatch(
+        matchId: Int,
+        onSuccess: (MatchResponseDto) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            isLoading = true
+            errorMessage = null
+            matchesRepository.completeMatch(matchId).fold(
+                onSuccess = { completed ->
+                    selectedMatch = completed
+                    matches = matches.map {
+                        if (it.id == completed.id) completed else it
+                    }
+                    onSuccess(completed)
+                },
+                onFailure = {
+                    val message = it.message ?: "No se pudo completar el match"
+                    errorMessage = message
+                    onError(message)
                 }
             )
             isLoading = false
@@ -41,7 +80,9 @@ class MatchViewModel(private val matchesRepository: MatchesRepository) : ViewMod
     }
 }
 
-class MatchViewModelFactory(private val repository: MatchesRepository) : ViewModelProvider.Factory {
+class MatchViewModelFactory(
+    private val repository: MatchesRepository
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MatchViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")

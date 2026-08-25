@@ -6,9 +6,15 @@ sealed class Screen(val route: String) {
         fun createRoute(jobId: Int) = "job_detail/$jobId"
     }
     object Match : Screen("match")
-    object JobStatus : Screen("job_status")
-    object JobCompleted : Screen("job_completed")
-    object Review : Screen("review")
+    object JobStatus : Screen("job_status/{matchId}") {
+        fun createRoute(matchId: Int) = "job_status/$matchId"
+    }
+    object JobCompleted : Screen("job_completed/{matchId}") {
+        fun createRoute(matchId: Int) = "job_completed/$matchId"
+    }
+    object Review : Screen("review/{matchId}") {
+        fun createRoute(matchId: Int) = "review/$matchId"
+    }
 
     // Rutas para las pantallas nuevas
     object Home : Screen("home")

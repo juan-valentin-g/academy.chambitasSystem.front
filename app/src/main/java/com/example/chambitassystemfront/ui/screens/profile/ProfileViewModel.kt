@@ -21,13 +21,11 @@ class ProfileViewModel(private val userRepository: UserRepository) : ViewModel()
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
-    fun fetchProfile(token: String) {
+    fun fetchProfile() {
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
-            val authHeader = if (token.startsWith("Bearer ")) token else "Bearer $token"
-
-            val result = userRepository.getProfile(authHeader)
+            val result = userRepository.getProfile()
             result.fold(
                 onSuccess = { profile ->
                     user = profile
@@ -40,12 +38,10 @@ class ProfileViewModel(private val userRepository: UserRepository) : ViewModel()
         }
     }
 
-    fun updateProfile(token: String, name: String, phone: String, description: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+    fun updateProfile(name: String, phone: String, description: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
             isLoading = true
-            val authHeader = if (token.startsWith("Bearer ")) token else "Bearer $token"
-
-            val result = userRepository.updateProfile(authHeader, name, phone, description)
+            val result = userRepository.updateProfile(name, phone, description)
             result.fold(
                 onSuccess = { updated ->
                     user = updated

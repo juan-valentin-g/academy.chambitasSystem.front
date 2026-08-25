@@ -7,12 +7,15 @@ data class CreateApplicationDto(
     @SerializedName("mensaje") val mensaje: String? = null
 )
 
-// Respuesta al consultar postulaciones con soporte para ambos nombres de campo (job_id o jobId)
 data class ApplicationResponseDto(
     @SerializedName("id") val id: Int,
-    @SerializedName(value = "job_id", alternate = ["jobId"]) val jobId: Int,
-    @SerializedName(value = "worker_id", alternate = ["workerId"]) val workerId: Int,
+    @SerializedName(value = "jobId", alternate = ["job_id"]) val jobId: Int,
+    @SerializedName(value = "applicantId", alternate = ["applicant_id", "workerId", "worker_id"])
+    val applicantId: Int,
     @SerializedName("estado") val estado: String,
     @SerializedName("mensaje") val mensaje: String?,
-    @SerializedName(value = "created_at", alternate = ["createdAt"]) val createdAt: String
+    @SerializedName(value = "createdAt", alternate = ["created_at"]) val createdAt: String,
+    @SerializedName(value = "updatedAt", alternate = ["updated_at"]) val updatedAt: String? = null,
+    @SerializedName("job") val job: JobResponseDto? = null,
+    @SerializedName("applicant") val applicant: UserDto? = null
 )

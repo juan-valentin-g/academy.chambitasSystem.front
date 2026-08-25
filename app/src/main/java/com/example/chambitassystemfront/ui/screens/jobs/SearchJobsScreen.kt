@@ -1,6 +1,5 @@
 package com.example.chambitassystemfront.ui.screens.jobs
 
-import android.content.Context // 👈 Import necesario para SharedPreferences
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -21,47 +20,38 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext // 👈 Import para el contexto de Compose
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.chambitassystemfront.ui.screens.home.CategoryViewModel
+import com.example.chambitassystemfront.data.session.SessionManager
+import kotlinx.coroutines.delay
 
 @Composable
 fun SearchJobsScreen(
     categoryViewModel: CategoryViewModel,
     jobViewModel: JobViewModel,
-    token: String,
     onJobClick: (Int) -> Unit,
     onBackClick: () -> Unit
 ) {
-    val context = LocalContext.current
-
     LaunchedEffect(Unit) {
-        val sharedPreferences = context.getSharedPreferences("ChambitasPrefs", Context.MODE_PRIVATE)
-        val userId = sharedPreferences.getInt("USER_ID", 0)
-
-        jobViewModel.setCurrentUserId(userId) // 👈 Seteamos el ID del usuario actual
-        categoryViewModel.fetchCategories(token)
-        jobViewModel.fetchJobs(token)
+        jobViewModel.setCurrentUserId(SessionManager.userId)
+        categoryViewModel.fetchCategories()
     }
 
     var searchText by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("Todas") }
+    var selectedCategoryId by remember { mutableStateOf<Int?>(null) }
+
+    LaunchedEffect(searchText, selectedCategoryId) {
+        delay(300)
+        jobViewModel.searchJobs(
+            titulo = searchText.trim().ifBlank { null },
+            categoryId = selectedCategoryId
+        )
+    }
 
     val categoriesList = categoryViewModel.categories
-    val jobs = jobViewModel.jobs
-
-    val filteredJobs = jobs.filter { job ->
-        val matchesSearch = searchText.isBlank() ||
-                job.titulo.contains(searchText, ignoreCase = true) ||
-                job.descripcion.contains(searchText, ignoreCase = true) ||
-                job.ubicacion.contains(searchText, ignoreCase = true)
-
-        val matchesCategory = selectedCategory == "Todas"
-
-        matchesSearch && matchesCategory
-    }
+    val filteredJobs = jobViewModel.searchResults
 
     val scrollState = rememberScrollState()
 
@@ -137,15 +127,15 @@ fun SearchJobsScreen(
             item {
                 CategoryChip(
                     text = "Todas",
-                    selected = selectedCategory == "Todas",
-                    onClick = { selectedCategory = "Todas" }
+                    selected = selectedCategoryId == null,
+                    onClick = { selectedCategoryId = null }
                 )
             }
             items(categoriesList) { cat ->
                 CategoryChip(
                     text = cat.nombre,
-                    selected = selectedCategory.equals(cat.nombre, ignoreCase = true),
-                    onClick = { selectedCategory = cat.nombre }
+                    selected = selectedCategoryId == cat.id,
+                    onClick = { selectedCategoryId = cat.id }
                 )
             }
         }
@@ -191,8 +181,8 @@ fun SearchJobsScreen(
             filteredJobs.forEach { job ->
                 SearchJobCard(
                     title = job.titulo,
-                    price = "$${job.presupuesto}",
-                    location = job.ubicacion,
+                    price = "$${job.presupuesto ?: 0.0}",
+                    location = job.ubicacion ?: "No especificada",
                     description = job.descripcion,
                     onClick = { onJobClick(job.id) }
                 )
