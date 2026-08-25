@@ -2,17 +2,17 @@ package com.example.chambitassystemfront.data.model
 
 import com.google.gson.annotations.SerializedName
 
-// DTO para postular a una vacante (POST /applications) -> Se eliminó jobId porque va en la URL
+// DTO para postular a una vacante (POST /applications)
 data class CreateApplicationDto(
     @SerializedName("mensaje") val mensaje: String? = null
 )
 
-// Respuesta al consultar postulaciones
+// Respuesta al consultar postulaciones con soporte para ambos nombres de campo (job_id o jobId)
 data class ApplicationResponseDto(
     @SerializedName("id") val id: Int,
-    @SerializedName("job_id") val jobId: Int,
-    @SerializedName("worker_id") val workerId: Int,
-    @SerializedName("estado") val estado: String, // 'PENDIENTE', 'ACEPTADA', 'RECHAZADA'
+    @SerializedName(value = "job_id", alternate = ["jobId"]) val jobId: Int,
+    @SerializedName(value = "worker_id", alternate = ["workerId"]) val workerId: Int,
+    @SerializedName("estado") val estado: String,
     @SerializedName("mensaje") val mensaje: String?,
-    @SerializedName("created_at") val createdAt: String
+    @SerializedName(value = "created_at", alternate = ["createdAt"]) val createdAt: String
 )

@@ -1,5 +1,6 @@
 package com.example.chambitassystemfront.ui.screens.jobs
 
+import android.content.Context // 👈 Import necesario para SharedPreferences
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -20,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext // 👈 Import para el contexto de Compose
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,7 +35,13 @@ fun SearchJobsScreen(
     onJobClick: (Int) -> Unit,
     onBackClick: () -> Unit
 ) {
+    val context = LocalContext.current
+
     LaunchedEffect(Unit) {
+        val sharedPreferences = context.getSharedPreferences("ChambitasPrefs", Context.MODE_PRIVATE)
+        val userId = sharedPreferences.getInt("USER_ID", 0)
+
+        jobViewModel.setCurrentUserId(userId) // 👈 Seteamos el ID del usuario actual
         categoryViewModel.fetchCategories(token)
         jobViewModel.fetchJobs(token)
     }
@@ -44,7 +52,6 @@ fun SearchJobsScreen(
     val categoriesList = categoryViewModel.categories
     val jobs = jobViewModel.jobs
 
-    // Filtrado usando las propiedades correctas de JobResponseDto
     val filteredJobs = jobs.filter { job ->
         val matchesSearch = searchText.isBlank() ||
                 job.titulo.contains(searchText, ignoreCase = true) ||
@@ -52,7 +59,6 @@ fun SearchJobsScreen(
                 job.ubicacion.contains(searchText, ignoreCase = true)
 
         val matchesCategory = selectedCategory == "Todas"
-        // || job.categoryId.toString() == selectedCategory // Descomenta o ajusta si manejas ID de categoría
 
         matchesSearch && matchesCategory
     }
@@ -182,7 +188,6 @@ fun SearchJobsScreen(
                 modifier = Modifier.padding(top = 20.dp)
             )
         } else {
-            // Pasamos los datos reales del JobResponseDto a la tarjeta
             filteredJobs.forEach { job ->
                 SearchJobCard(
                     title = job.titulo,

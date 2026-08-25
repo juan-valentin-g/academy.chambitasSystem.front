@@ -1,13 +1,14 @@
 package com.example.chambitassystemfront.ui.screens.home
 
+import android.content.Context // 👈 Import necesario para SharedPreferences
 import com.example.chambitassystemfront.ui.screens.jobs.JobViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState // <-- Import necesario
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll // <-- Import necesario
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.LocationOn
@@ -22,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext // 👈 Import para el contexto de Compose
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,7 +40,13 @@ fun HomeScreen(
     onViewJobClick: (Int) -> Unit,
     jobViewModel: JobViewModel
 ) {
+    val context = LocalContext.current
+
     LaunchedEffect(Unit) {
+        val sharedPreferences = context.getSharedPreferences("ChambitasPrefs", Context.MODE_PRIVATE)
+        val userId = sharedPreferences.getInt("USER_ID", 0)
+
+        jobViewModel.setCurrentUserId(userId) // 👈 Seteamos el ID del usuario actual
         categoryViewModel.fetchCategories(token)
         jobViewModel.fetchJobs(token)
     }
@@ -46,15 +54,14 @@ fun HomeScreen(
     val categoriesList = categoryViewModel.categories
     val jobsList = jobViewModel.jobs
 
-    // Creamos el estado para el scroll vertical
     val scrollState = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF9F7FF))
-            .verticalScroll(scrollState) // <-- Agregamos el scroll aquí
-            .padding(horizontal = 18.dp, vertical = 18.dp) // Añadimos padding vertical para que no se pegue arriba/abajo
+            .verticalScroll(scrollState)
+            .padding(horizontal = 18.dp, vertical = 18.dp)
     ) {
 
         Row(
@@ -170,7 +177,6 @@ fun HomeScreen(
             }
         }
 
-        // Espaciador final para que el último elemento no quede pegado al borde inferior
         Spacer(modifier = Modifier.height(24.dp))
     }
 }

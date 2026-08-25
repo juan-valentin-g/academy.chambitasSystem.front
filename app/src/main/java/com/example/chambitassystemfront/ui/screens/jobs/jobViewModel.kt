@@ -14,7 +14,15 @@ import kotlinx.coroutines.launch
 
 class JobViewModel(private val jobsRepository: JobsRepository) : ViewModel() {
 
+    private var allJobs: List<JobResponseDto> = emptyList()
+
     var jobs by mutableStateOf<List<JobResponseDto>>(emptyList())
+        private set
+
+    var myPublications by mutableStateOf<List<JobResponseDto>>(emptyList())
+        private set
+
+    var myApplications by mutableStateOf<List<JobResponseDto>>(emptyList())
         private set
 
     var isLoading by mutableStateOf(false)
@@ -23,28 +31,55 @@ class JobViewModel(private val jobsRepository: JobsRepository) : ViewModel() {
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
+    private val appliedJobIds = mutableSetOf<Int>()
+    private var currentUserId: Int = 0
+
+    fun setCurrentUserId(userId: Int) {
+        currentUserId = userId
+        applyFilters()
+    }
+
+    fun markAsApplied(jobId: Int) {
+        appliedJobIds.add(jobId)
+        applyFilters()
+    }
+
+    private fun applyFilters() {
+        // 1. Mis publicaciones (creadas por mí)
+        myPublications = allJobs.filter { it.ownerId == currentUserId }
+
+        // 2. Trabajos a los que ya me postulé
+        myApplications = allJobs.filter { appliedJobIds.contains(it.id) }
+
+        // 3. Bolsa general de inicio y búsqueda:
+        // Excluimos estrictamente los míos (ownerId != currentUserId), los ya aplicados y exigimos que estén PUBLICADOS.
+        jobs = allJobs.filter { job ->
+            val isNotMine = if (currentUserId > 0) job.ownerId != currentUserId else false
+            val notApplied = !appliedJobIds.contains(job.id)
+            val isPublished = job.estado.uppercase() == "PUBLICADO"
+
+            isNotMine && notApplied && isPublished
+        }
+    }
+
     fun fetchJobs(token: String) {
-        Log.d("JobViewModel", "-> fetchJobs llamado con token: $token")
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
-
             val authHeader = if (token.startsWith("Bearer ")) token else "Bearer $token"
 
             try {
                 val result = jobsRepository.getJobs(authHeader)
                 result.fold(
                     onSuccess = { list ->
-                        Log.d("JobViewModel", "-> Trabajos obtenidos con éxito: ${list.size}")
-                        jobs = list
+                        allJobs = list
+                        applyFilters()
                     },
                     onFailure = { error ->
-                        Log.e("JobViewModel", "-> Error en onFailure del repositorio: ${error.message}")
                         errorMessage = error.message
                     }
                 )
             } catch (e: Exception) {
-                Log.e("JobViewModel", "-> Excepción atrapada en try-catch: ${e.message}")
                 errorMessage = e.localizedMessage
             } finally {
                 isLoading = false
@@ -64,10 +99,7 @@ class JobViewModel(private val jobsRepository: JobsRepository) : ViewModel() {
     ) {
         viewModelScope.launch {
             isLoading = true
-            errorMessage = null
-
             val authHeader = if (token.startsWith("Bearer ")) token else "Bearer $token"
-
             val request = CreateJobDto(
                 categoryId = categoryId,
                 titulo = titulo,
@@ -80,21 +112,15 @@ class JobViewModel(private val jobsRepository: JobsRepository) : ViewModel() {
                 val result = jobsRepository.createJob(authHeader, request)
                 result.fold(
                     onSuccess = { createdJob ->
-                        Log.d("JobViewModel", "-> Trabajo creado con éxito: ${createdJob.titulo}")
+                        allJobs = listOf(createdJob) + allJobs
+                        applyFilters()
                         onSuccess()
                     },
                     onFailure = { error ->
-                        val errorBody = if (error is retrofit2.HttpException) {
-                            error.response()?.errorBody()?.string() ?: error.message
-                        } else {
-                            error.message
-                        }
-                        errorMessage = errorBody
-                        onError(errorBody ?: "Error al crear el trabajo")
+                        onError(error.message ?: "Error al crear el trabajo")
                     }
                 )
             } catch (e: Exception) {
-                errorMessage = e.localizedMessage
                 onError(e.localizedMessage ?: "Error inesperado")
             } finally {
                 isLoading = false
@@ -111,67 +137,23 @@ class JobViewModel(private val jobsRepository: JobsRepository) : ViewModel() {
     ) {
         viewModelScope.launch {
             isLoading = true
-            errorMessage = null
-
             val authHeader = if (token.startsWith("Bearer ")) token else "Bearer $token"
 
             try {
-                // Se envía exclusivamente el mensaje en el Body ya que el jobId viaja por la URL
                 val request = CreateApplicationDto(mensaje = mensaje)
                 val result = jobsRepository.applyToJob(authHeader, jobId, request)
 
                 result.fold(
                     onSuccess = {
-                        Log.d("JobViewModel", "-> Postulación enviada con éxito")
+                        markAsApplied(jobId)
                         onSuccess()
                     },
                     onFailure = { error ->
-                        val errorMsg = if (error is retrofit2.HttpException) {
-                            error.response()?.errorBody()?.string() ?: error.message
-                        } else {
-                            error.message
-                        }
-                        Log.e("JobViewModel", "-> Error al postularse: $errorMsg")
-                        onError(errorMsg ?: "Error al postularse")
+                        onError(error.message ?: "Error al postularse")
                     }
                 )
             } catch (e: Exception) {
-                Log.e("JobViewModel", "-> Excepción al postularse: ${e.message}")
                 onError("Error de conexión: ${e.localizedMessage}")
-            } finally {
-                isLoading = false
-            }
-        }
-    }
-
-    fun getJobById(
-        token: String,
-        jobId: Int,
-        onSuccess: (JobResponseDto) -> Unit,
-        onError: (String) -> Unit
-    ) {
-        viewModelScope.launch {
-            isLoading = true
-            errorMessage = null
-
-            val authHeader = if (token.startsWith("Bearer ")) token else "Bearer $token"
-
-            try {
-                val result = jobsRepository.getJobById(authHeader, jobId)
-
-                result.fold(
-                    onSuccess = { jobDto ->
-                        onSuccess(jobDto)
-                    },
-                    onFailure = { error ->
-                        val errorMsg = error.localizedMessage ?: "No se encontró el trabajo"
-                        Log.e("JobViewModel", "-> Error al obtener trabajo: $errorMsg")
-                        onError(errorMsg)
-                    }
-                )
-            } catch (e: Exception) {
-                Log.e("JobViewModel", "-> Excepción al obtener trabajo por ID: ${e.message}")
-                onError("Error de red: ${e.localizedMessage}")
             } finally {
                 isLoading = false
             }

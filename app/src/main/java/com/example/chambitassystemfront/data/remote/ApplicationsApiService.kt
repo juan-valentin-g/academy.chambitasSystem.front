@@ -6,12 +6,17 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
-import retrofit2.http.PUT
+import retrofit2.http.PATCH
 import retrofit2.http.Path
 
 interface ApplicationsApiService {
 
-    // 💡 Método que ya tenías para postularte a una chamba
+    // 🚀 NUEVO: Endpoint para obtener las postulaciones enviadas del usuario
+    @GET("applications/my")
+    suspend fun getMyApplications(
+        @Header("Authorization") token: String
+    ): List<ApplicationResponseDto>
+
     @POST("jobs/{jobId}/applications")
     suspend fun applyToJob(
         @Header("Authorization") token: String,
@@ -19,23 +24,21 @@ interface ApplicationsApiService {
         @Body request: CreateApplicationDto
     ): ApplicationResponseDto
 
-    // 💡 NUEVO: Obtener las postulaciones enviadas por el usuario actual
-    @GET("applications/sent")
-    suspend fun getSentApplications(
-        @Header("Authorization") token: String
-    ): List<ApplicationResponseDto>
-
-    // 💡 NUEVO: Obtener las postulaciones recibidas en los trabajos del usuario
-    @GET("applications/received")
-    suspend fun getReceivedApplications(
-        @Header("Authorization") token: String
-    ): List<ApplicationResponseDto>
-
-    // 💡 NUEVO: Actualizar el estado de una postulación (Aceptar / Rechazar)
-    @PUT("applications/{id}/status")
-    suspend fun updateApplicationStatus(
+    @GET("jobs/{jobId}/applications")
+    suspend fun getApplicationsByJob(
         @Header("Authorization") token: String,
-        @Path("id") applicationId: Int,
-        @Body body: Map<String, String>
+        @Path("jobId") jobId: Int
+    ): List<ApplicationResponseDto>
+
+    @PATCH("applications/{id}/accept")
+    suspend fun acceptApplication(
+        @Header("Authorization") token: String,
+        @Path("id") applicationId: Int
+    ): ApplicationResponseDto
+
+    @PATCH("applications/{id}/reject")
+    suspend fun rejectApplication(
+        @Header("Authorization") token: String,
+        @Path("id") applicationId: Int
     ): ApplicationResponseDto
 }

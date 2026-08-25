@@ -21,6 +21,10 @@ import com.example.chambitassystemfront.ui.screens.jobs.PostaJobScreen
 import com.example.chambitassystemfront.ui.screens.admin.AdminDashboardScreen
 import com.example.chambitassystemfront.ui.screens.admin.CategoriesScreen
 import com.example.chambitassystemfront.ui.screens.applications.ApplicationsScreen
+import com.example.chambitassystemfront.ui.screens.applications.ApplicationsViewModel
+import com.example.chambitassystemfront.ui.screens.applications.ApplicationsViewModelFactory
+import com.example.chambitassystemfront.data.repository.ApplicationsRepository
+import com.example.chambitassystemfront.data.remote.ApiClient
 import com.example.chambitassystemfront.ui.screens.auth.AccountTypeScreen
 import com.example.chambitassystemfront.ui.screens.auth.LoginScreen
 import com.example.chambitassystemfront.ui.screens.auth.RegisterScreen
@@ -39,9 +43,9 @@ import com.example.chambitassystemfront.ui.screens.profile.EditProfileScreen
 import com.example.chambitassystemfront.ui.screens.reviews.ReviewScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.chambitassystemfront.ui.screens.home.CategoryViewModel
+import com.example.chambitassystemfront.ui.screens.jobs.JobViewModel
 import com.example.chambitassystemfront.ui.screens.jobs.JobViewModelFactory
 import com.example.chambitassystemfront.data.repository.JobsRepository
-import com.example.chambitassystemfront.data.remote.ApiClient
 
 @Composable
 fun AppNavigation() {
@@ -51,6 +55,9 @@ fun AppNavigation() {
 
     val context = LocalContext.current
     val categoryViewModel: CategoryViewModel = viewModel()
+
+    // Declaramos el jobViewModel de forma global aquí para compartirlo entre pantallas
+    val jobViewModel: JobViewModel = viewModel(factory = JobViewModelFactory(JobsRepository()))
 
     LaunchedEffect(Unit) {
         if (ApiClient.userToken.isNullOrEmpty()) {
@@ -161,7 +168,7 @@ fun AppNavigation() {
                     onProfileClick = { navController.navigate("profile") },
                     onChatClick = { navController.navigate("messages") },
                     onViewJobClick = { jobId -> navController.navigate("job_detail/$jobId") },
-                    jobViewModel = viewModel(factory = JobViewModelFactory(JobsRepository()))
+                    jobViewModel = jobViewModel
                 )
             }
 
@@ -169,7 +176,7 @@ fun AppNavigation() {
             composable("search_jobs") {
                 SearchJobsScreen(
                     categoryViewModel = categoryViewModel,
-                    jobViewModel = viewModel(factory = JobViewModelFactory(JobsRepository())),
+                    jobViewModel = jobViewModel,
                     token = getSessionToken(),
                     onJobClick = { jobId -> navController.navigate("job_detail/$jobId") },
                     onBackClick = { navController.popBackStack() }
@@ -180,7 +187,7 @@ fun AppNavigation() {
             composable("publish_job") {
                 PostaJobScreen(
                     token = getSessionToken(),
-                    jobViewModel = viewModel(factory = JobViewModelFactory(JobsRepository())),
+                    jobViewModel = jobViewModel,
                     onBackClick = { navController.popBackStack() },
                     onPublishSuccess = {
                         navController.navigate("home") { popUpTo("home") { inclusive = false } }
@@ -193,7 +200,7 @@ fun AppNavigation() {
                 ChatScreen(
                     token = getSessionToken(),
                     jobId = 0,
-                    jobViewModel = viewModel(factory = JobViewModelFactory(JobsRepository())),
+                    jobViewModel = jobViewModel,
                     onBackClick = { navController.popBackStack() }
                 )
             }
@@ -206,7 +213,7 @@ fun AppNavigation() {
                 ChatScreen(
                     token = getSessionToken(),
                     jobId = jobId,
-                    jobViewModel = viewModel(factory = JobViewModelFactory(JobsRepository())),
+                    jobViewModel = jobViewModel,
                     onBackClick = { navController.popBackStack() }
                 )
             }
@@ -220,15 +227,13 @@ fun AppNavigation() {
                 JobDetailScreen(
                     token = getSessionToken(),
                     jobId = jobId,
-                    jobViewModel = viewModel(factory = JobViewModelFactory(JobsRepository())),
+                    jobViewModel = jobViewModel,
                     onApplyClick = { navController.navigate("apply_job/$jobId") },
                     onBackClick = { navController.popBackStack() }
                 )
             }
 
-// =========================================================
-// POSTULARSE
-// =========================================================
+            // POSTULARSE
             composable(
                 route = "apply_job/{jobId}",
                 arguments = listOf(navArgument("jobId") { type = NavType.IntType })
@@ -237,11 +242,8 @@ fun AppNavigation() {
                 ApplyJobScreen(
                     token = getSessionToken(),
                     jobId = jobId,
-                    jobViewModel = viewModel(
-                        factory = JobViewModelFactory(JobsRepository())
-                    ),
+                    jobViewModel = jobViewModel,
                     onApplySuccess = {
-                        // 💡 Al completarse con éxito, volvemos al home limpiando la pila
                         navController.navigate("home") {
                             popUpTo("home") { inclusive = true }
                             launchSingleTop = true
@@ -253,20 +255,30 @@ fun AppNavigation() {
                 )
             }
 
-// POSTULACIONES
+// POSTULACIONES (MATCH Y SOLICITUDES)
             composable("applications") {
+                val applicationsRepository = ApplicationsRepository()
+                val applicationsViewModel: ApplicationsViewModel = viewModel(
+                    factory = ApplicationsViewModelFactory(applicationsRepository)
+                )
+
                 ApplicationsScreen(
-                    token = getSessionToken(), // 💡 Aquí es donde se inyecta el token activo
+                    applicationsViewModel = applicationsViewModel,
+                    jobViewModel = jobViewModel, // 🚀 Añade esta línea aquí para pasárselo a la pantalla
+                    token = getSessionToken(),
                     onMatchClick = {
                         navController.navigate("match")
                     },
                     onBackClick = {
                         navController.popBackStack()
+                    },
+                    onJobClick = { jobId ->
+                        navController.navigate("job_detail/$jobId")
                     }
                 )
             }
 
-            // MATCH
+// MATCH
             composable("match") {
                 val matchViewModel: com.example.chambitassystemfront.ui.screens.match.MatchViewModel = viewModel(
                     factory = com.example.chambitassystemfront.ui.screens.match.MatchViewModelFactory(
@@ -283,12 +295,12 @@ fun AppNavigation() {
                 MatchScreen(
                     match = currentMatch,
                     onGoToChat = {
-                        val activeJobId = currentMatch?.jobId ?: 0
-                        if (activeJobId > 0) {
-                            navController.navigate("messages/$activeJobId")
-                        } else {
-                            navController.navigate("messages")
-                        }
+                        // 🚀 Obtenemos el jobId del match real, o buscamos el primer match con ID válido de la lista
+                        val activeJobId = currentMatch?.jobId
+                            ?: matchViewModel.matches.firstOrNull { it.jobId > 0 }?.jobId
+                            ?: 1 // Valor de respaldo seguro
+
+                        navController.navigate("messages/$activeJobId")
                     },
                     onGoToHome = {
                         navController.navigate("home") { popUpTo("home") { inclusive = false } }
@@ -299,9 +311,6 @@ fun AppNavigation() {
 
             // TRABAJO EN PROCESO
             composable("job_status") {
-                val jobViewModel: com.example.chambitassystemfront.ui.screens.jobs.JobViewModel = viewModel(
-                    factory = JobViewModelFactory(JobsRepository())
-                )
                 val currentJob = jobViewModel.jobs.firstOrNull()
 
                 JobStatusScreen(
@@ -313,9 +322,6 @@ fun AppNavigation() {
 
             // TRABAJO COMPLETADO
             composable("job_completed") {
-                val jobViewModel: com.example.chambitassystemfront.ui.screens.jobs.JobViewModel = viewModel(
-                    factory = JobViewModelFactory(JobsRepository())
-                )
                 val currentJob = jobViewModel.jobs.firstOrNull()
 
                 JobCompletedScreen(
@@ -333,7 +339,8 @@ fun AppNavigation() {
                     onBackClick = { navController.popBackStack() }
                 )
             }
-// PERFIL
+
+            // PERFIL
             composable("profile") {
                 val profileViewModel: com.example.chambitassystemfront.ui.screens.profile.ProfileViewModel = viewModel(
                     factory = com.example.chambitassystemfront.ui.screens.profile.ProfileViewModelFactory(
@@ -359,7 +366,7 @@ fun AppNavigation() {
                 )
             }
 
-// EDITAR PERFIL
+            // EDITAR PERFIL
             composable("edit_profile") {
                 val profileViewModel: com.example.chambitassystemfront.ui.screens.profile.ProfileViewModel = viewModel(
                     factory = com.example.chambitassystemfront.ui.screens.profile.ProfileViewModelFactory(
@@ -381,9 +388,7 @@ fun AppNavigation() {
                             onSuccess = {
                                 navController.popBackStack()
                             },
-                            onError = { _ ->
-                                // Opcional: mostrar error
-                            }
+                            onError = { _ -> }
                         )
                     },
                     onBackClick = { navController.popBackStack() }

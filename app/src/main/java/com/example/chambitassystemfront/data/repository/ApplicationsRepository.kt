@@ -5,9 +5,10 @@ import com.example.chambitassystemfront.data.remote.ApiClient
 
 class ApplicationsRepository {
 
-    suspend fun getSentApplications(token: String): Result<List<ApplicationResponseDto>> {
+    // Obtener todas las postulaciones del usuario (enviadas)
+    suspend fun getMyApplications(token: String): Result<List<ApplicationResponseDto>> {
         return try {
-            val response = ApiClient.applicationsApiService.getSentApplications(token)
+            val response = ApiClient.applicationsApiService.getMyApplications(token)
             Result.success(response)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -15,9 +16,10 @@ class ApplicationsRepository {
         }
     }
 
-    suspend fun getReceivedApplications(token: String): Result<List<ApplicationResponseDto>> {
+    // Obtener solicitudes por ID de trabajo
+    suspend fun getApplicationsByJob(token: String, jobId: Int): Result<List<ApplicationResponseDto>> {
         return try {
-            val response = ApiClient.applicationsApiService.getReceivedApplications(token)
+            val response = ApiClient.applicationsApiService.getApplicationsByJob(token, jobId)
             Result.success(response)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -25,10 +27,21 @@ class ApplicationsRepository {
         }
     }
 
-    suspend fun updateStatus(token: String, appId: Int, newStatus: String): Result<ApplicationResponseDto> {
+    // Aceptar postulación
+    suspend fun acceptApplication(token: String, appId: Int): Result<ApplicationResponseDto> {
         return try {
-            val body = mapOf("estado" to newStatus)
-            val response = ApiClient.applicationsApiService.updateApplicationStatus(token, appId, body)
+            val response = ApiClient.applicationsApiService.acceptApplication(token, appId)
+            Result.success(response)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Result.failure(e)
+        }
+    }
+
+    // Rechazar postulación
+    suspend fun rejectApplication(token: String, appId: Int): Result<ApplicationResponseDto> {
+        return try {
+            val response = ApiClient.applicationsApiService.rejectApplication(token, appId)
             Result.success(response)
         } catch (e: Exception) {
             e.printStackTrace()

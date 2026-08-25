@@ -35,11 +35,12 @@ fun ChatScreen(
     var message by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
+    // 🚀 Cargamos el mensaje inicial de la postulación o dejamos la conversación abierta
     var messages by remember {
         mutableStateOf(
             listOf(
                 ChatMessage(
-                    text = "¡Hola! Me interesa esta chambita.",
+                    text = "¡Hola! Mi postulación para este trabajo ha sido aceptada. ¡Comenzamos!",
                     isMine = false
                 )
             )
@@ -87,12 +88,12 @@ fun ChatScreen(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Postulación a Trabajo",
+                    text = "Chat de Match",
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "ID de chambita: #$jobId",
+                    text = "Trabajo ID: #$jobId", // 👈 Muestra el ID real recibido del match
                     fontSize = 12.sp,
                     color = Color.Gray
                 )
@@ -149,7 +150,7 @@ fun ChatScreen(
                         message = it
                         errorMessage = ""
                     },
-                    placeholder = { Text("Escribe tu mensaje...") },
+                    placeholder = { Text("Escribe un mensaje...") },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(20.dp),
                     singleLine = true
@@ -162,28 +163,27 @@ fun ChatScreen(
                         if (message.isNotBlank()) {
                             val textoAEnviar = message
 
-                            // Añadimos visualmente el mensaje de forma instantánea
+                            // Añadimos visualmente el mensaje de forma instantánea al chat
                             messages = messages + ChatMessage(
                                 text = textoAEnviar,
                                 isMine = true
                             )
                             message = ""
 
-                            // Nota: Si aún no creas applyToJob en tu ViewModel,
-                            // puedes descomentar esto cuando lo añadas:
-                            /*
-                            jobViewModel.applyToJob(
-                                token = token,
-                                jobId = jobId,
-                                mensaje = textoAEnviar,
-                                onSuccess = {
-                                    // Éxito al postularse
-                                },
-                                onError = { errorMsg: String ->
-                                    errorMessage = errorMsg
-                                }
-                            )
-                            */
+                            // 🚀 Aquí puedes conectar el envío de mensajes o llamadas al ViewModel si lo requieres
+                            if (jobId > 0) {
+                                jobViewModel.applyToJob(
+                                    token = token,
+                                    jobId = jobId,
+                                    mensaje = textoAEnviar,
+                                    onSuccess = {
+                                        // Mensaje enviado / postulación actualizada
+                                    },
+                                    onError = { errorMsg: String ->
+                                        errorMessage = errorMsg
+                                    }
+                                )
+                            }
                         }
                     },
                     containerColor = Color(0xFF4B20C9),

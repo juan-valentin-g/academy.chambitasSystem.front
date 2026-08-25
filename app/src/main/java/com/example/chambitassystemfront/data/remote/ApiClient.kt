@@ -6,10 +6,9 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
-
-
 object ApiClient {
-    private const val BASE_URL = "https://thikl-189-129-42-124.run.pinggy-free.link"
+
+    private const val BASE_URL = "http://192.168.1.77:3000/"
 
     var userToken: String? = null
 
@@ -23,7 +22,6 @@ object ApiClient {
             val originalRequest = chain.request()
             val requestBuilder = originalRequest.newBuilder()
 
-            // Si hay un token guardado, se añade automáticamente en las cabeceras
             userToken?.let { token ->
                 val cleanToken = if (token.startsWith("Bearer ")) token else "Bearer $token"
                 requestBuilder.header("Authorization", cleanToken)
@@ -35,7 +33,6 @@ object ApiClient {
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    // Instancia única de Retrofit para toda la app
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
@@ -44,7 +41,6 @@ object ApiClient {
             .build()
     }
 
-    // Servicios de la API centralizados
     val authApiService: AuthApiService by lazy { retrofit.create(AuthApiService::class.java) }
     val jobsApiService: JobsApiService by lazy { retrofit.create(JobsApiService::class.java) }
     val categoryApiService: CategoryApiService by lazy { retrofit.create(CategoryApiService::class.java) }

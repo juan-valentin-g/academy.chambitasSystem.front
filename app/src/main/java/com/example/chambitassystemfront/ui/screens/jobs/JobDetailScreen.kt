@@ -29,21 +29,10 @@ fun JobDetailScreen(
     onApplyClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
-    var jobDetail by remember { mutableStateOf<JobResponseDto?>(null) }
-    var errorMessage by remember { mutableStateOf("") }
-
-    // Al iniciar la pantalla, cargamos el detalle del trabajo por su ID
-    LaunchedEffect(jobId) {
-        jobViewModel.getJobById(
-            token = token,
-            jobId = jobId,
-            onSuccess = { job ->
-                jobDetail = job
-            },
-            onError = { error ->
-                errorMessage = error
-            }
-        )
+    // Buscamos el trabajo directamente en las listas cargadas del ViewModel
+    val job = remember(jobId, jobViewModel.jobs, jobViewModel.myPublications, jobViewModel.myApplications) {
+        val allAvailableJobs = jobViewModel.jobs + jobViewModel.myPublications + jobViewModel.myApplications
+        allAvailableJobs.find { it.id == jobId }
     }
 
     Column(
@@ -75,17 +64,15 @@ fun JobDetailScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        if (jobViewModel.isLoading) {
+        if (jobViewModel.isLoading && job == null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = Color(0xFF4B20C9))
             }
-        } else if (errorMessage.isNotEmpty()) {
+        } else if (job == null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = errorMessage, color = Color(0xFFD32F2F), fontSize = 16.sp)
+                Text(text = "No se encontró la información del trabajo", color = Color(0xFFD32F2F), fontSize = 16.sp)
             }
         } else {
-            val job = jobDetail
-
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -115,7 +102,7 @@ fun JobDetailScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        text = job?.titulo ?: "Cargando...",
+                        text = job.titulo ?: "Sin título",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -124,28 +111,29 @@ fun JobDetailScreen(
 
                     JobInfoRow(
                         icon = Icons.Default.AttachMoney,
-                        text = "Presupuesto: $${job?.presupuesto ?: 0.0}"
+                        text = "Presupuesto: $${job.presupuesto}"
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
 
                     JobInfoRow(
                         icon = Icons.Default.LocationOn,
-                        text = job?.ubicacion ?: "Ubicación no especificada"
+                        text = job.ubicacion?.takeIf { it.isNotBlank() } ?: "Ubicación no especificada"
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
 
+                    val formattedDate = job.createdAt?.let { if (it.length >= 10) it.take(10) else it } ?: "Fecha no disponible"
                     JobInfoRow(
                         icon = Icons.Default.CalendarToday,
-                        text = "Fecha: ${job?.createdAt?.take(10) ?: "Por definir"}"
+                        text = "Fecha: $formattedDate"
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
 
                     JobInfoRow(
                         icon = Icons.Default.Person,
-                        text = "ID del Propietario: #${job?.ownerId ?: 0}"
+                        text = "ID del Propietario: #${job.ownerId}"
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -159,7 +147,7 @@ fun JobDetailScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = job?.descripcion ?: "Sin descripción disponible.",
+                        text = job.descripcion?.takeIf { it.isNotBlank() } ?: "Sin descripción disponible.",
                         fontSize = 15.sp,
                         color = Color.DarkGray
                     )
@@ -167,7 +155,20 @@ fun JobDetailScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Button(
-                        onClick = onApplyClick,
+                        onClick = {
+                            // 🚀 Llamada completa con mensaje, éxito y manejo de errores
+                            jobViewModel.applyToJob(
+                                token = token,
+                                jobId = jobId,
+                                mensaje = "Me interesa mucho este trabajo",
+                                onSuccess = {
+                                    onApplyClick()
+                                },
+                                onError = { errorMsg ->
+                                    // Puedes manejar el error si lo requieres
+                                }
+                            )
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4B20C9))
